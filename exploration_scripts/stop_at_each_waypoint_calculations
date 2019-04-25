@@ -1,0 +1,129 @@
+#!/usr/bin/env python
+from matplotlib import pyplot as plt
+
+# goal position (1D)
+g = 3.0
+
+# initial starting configuration
+# these are sequential trajectory points -- only 1D because we're only considering one link at a time
+# goes back 4 places because that's needed for jerk calculations
+# we assume we start at full rest
+x = [0.0, 0.0, 0.0, 0.0]
+v = [0.0, 0.0, 0.0, 0.0]
+a = [0.0, 0.0, 0.0, 0.0]
+j = [0.0, 0.0, 0.0, 0.0]
+
+# time interval at which positions will be sent
+# for our robot, it's 8ms
+dt = .008
+
+# these are the actual limits for our robot, but we're not using them because we're being very conservative
+# in a version of this for use, we'd verify that the trajectory doesn't reach the limits
+#vlim = 200
+#alim = 700
+#jlim = 4900
+
+# number of trajectory points we'll have
+# 256 was selected because the trajectory would then take ~2s
+# which is slow enough that we don't need to worry about hitting the limits
+# we could adaptively change this number to go as fast as possible without hitting the limits
+num = 256
+p1 = num/4
+p2 = num - p1
+
+# calculate jerk to use, assuming we're doing a very basic trajectory where jerk
+# is only at either +jlim or -jlim and velocity/acceleration never hit their limits
+jlim = 32 * g / ((num * dt) * (num * dt) * (num * dt))
+
+
+# given end point and time for trajectory, should be able to calculate
+# new, lower jerk trajectory for simple trajectory
+for i in range(num):
+    if (i < p1):
+        j.append(jlim)
+        a.append(a[-1] + j[-1]*dt)
+        v.append(v[-1] + a[-1]*dt)
+        x.append(x[-1] + v[-1]*dt)
+    if (i >= p1 and i < p2):
+        j.append(-1*jlim)
+        a.append(a[-1] + j[-1]*dt)
+        v.append(v[-1] + a[-1]*dt)
+        x.append(x[-1] + v[-1]*dt)
+    if (i >= p2):
+        j.append(jlim)
+        a.append(a[-1] + j[-1]*dt)
+        v.append(v[-1] + a[-1]*dt)
+        x.append(x[-1] + v[-1]*dt)
+
+print "\n"
+print x[-1]
+print num
+print dt
+print jlim
+
+plt.plot(x)
+plt.plot(v)
+plt.plot(a)
+plt.plot(j)
+plt.show()
+
+
+
+
+
+
+# calculate second round with different goal to demonstrate that this approach is linear
+
+x1 = x
+v1 = v
+a1 = a
+j1 = j
+
+# reset these so we're starting with the same configuration
+# other variables are reused from before
+x = [0.0, 0.0, 0.0, 0.0]
+v = [0.0, 0.0, 0.0, 0.0]
+a = [0.0, 0.0, 0.0, 0.0]
+j = [0.0, 0.0, 0.0, 0.0]
+
+# new, larger goal
+g = 10
+
+# calculate the jerk limit the same way
+jlim = 32 * g / ((num * dt) * (num * dt) * (num * dt))
+
+for i in range(num):
+    if (i < p1):
+        j.append(jlim)
+        a.append(a[-1] + j[-1]*dt)
+        v.append(v[-1] + a[-1]*dt)
+        x.append(x[-1] + v[-1]*dt)
+    if (i >= p1 and i < p2):
+        j.append(-1*jlim)
+        a.append(a[-1] + j[-1]*dt)
+        v.append(v[-1] + a[-1]*dt)
+        x.append(x[-1] + v[-1]*dt)
+    if (i >= p2):
+        j.append(jlim)
+        a.append(a[-1] + j[-1]*dt)
+        v.append(v[-1] + a[-1]*dt)
+        x.append(x[-1] + v[-1]*dt)
+
+print "\n"
+print x[-1]
+print num
+print dt
+print jlim
+
+plt.plot(x)
+plt.plot(v)
+plt.plot(a)
+plt.plot(j)
+plt.plot(x1)
+plt.plot(v1)
+plt.plot(a1)
+plt.plot(j1)
+plt.show()
+
+plt.plot(x, x1)
+plt.show()
