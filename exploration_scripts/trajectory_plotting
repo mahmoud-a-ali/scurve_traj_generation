@@ -1,0 +1,52 @@
+#!/usr/bin/env python
+from matplotlib import pyplot as plt
+import rosbag
+
+def get_waypoints(bag_name):
+    bag = rosbag.Bag(bag_name, 'r')
+    waypoints = None
+    for topic, msg, t in bag.read_messages():
+        print "Number of waypoints: ", len(msg.goal.trajectory.joint_trajectory.points)
+        waypoints = msg.goal.trajectory.joint_trajectory.points
+    bag.close()
+
+    positions = []
+    velocities = []
+    accelerations = []
+    times = []
+    for wp in waypoints:
+        positions.append(wp.positions)
+        velocities.append(wp.velocities)
+        accelerations.append(wp.accelerations)
+        times.append(wp.time_from_start.to_sec())
+    return (positions, velocities, accelerations, times)
+
+def calc_jerk_from_acceleration(accelerations, times):
+    jerks = [[0, 0, 0, 0, 0, 0]]
+    for i in range(len(accelerations)-1):
+        if times[i+1] - times[i] == 0:
+            print "time delta is 0! skipping jerk"
+            jerk = [0, 0, 0, 0, 0, 0]
+        else:
+            jerk = []
+            for j in range(len(accelerations[i])):
+                jerk.append((accelerations[i+1][j] - accelerations[i][j]) / (times[i+1] - times[i]))
+        jerks.append(jerk)
+
+    return jerks
+
+
+def plot_waypoints(positions, velocities, accelerations, jerks, times):
+    fig, axes = plt.subplots(nrows=4, ncols=6, sharex=True, sharey=True)
+    for i in range(6):
+        axes[0, i].plot(times, [p[i] for p in positions], marker='x', color='red')
+        axes[1, i].plot(times, [v[i] for v in velocities], marker='x', color='blue')
+        axes[2, i].plot(times, [a[i] for a in accelerations], marker='x', color='green')
+        axes[3, i].plot(times, [j[i] for j in jerks], marker='x', color='red')
+    plt.show()
+
+
+# DO STUFF
+(positions, velocities, accelerations, times) = get_waypoints('a.bag')
+jerks = calc_jerk_from_acceleration(accelerations, times)
+plot_waypoints(positions, velocities, accelerations, jerks, times)
