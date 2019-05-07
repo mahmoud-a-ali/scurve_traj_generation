@@ -41,7 +41,6 @@ def calc_derivative_from_sequence(sequence, times):
 
     return derivatives
 
-
 def get_fig_and_axes():
     fig, axes = plt.subplots(nrows=4, ncols=6, sharex=True, sharey=True)
     return fig, axes
@@ -52,7 +51,6 @@ def plot_waypoints(positions, velocities, accelerations, jerks, times, axes, col
         axes[1, i].plot(times, [v[i] for v in velocities], marker=marker, color=color)
         axes[2, i].plot(times, [a[i] for a in accelerations], marker=marker, color=color)
         axes[3, i].plot(times, [j[i] for j in jerks], marker=marker, color=color)
-    #plt.show()
 
 def fit_quintic_splines_with_stop(positions, times):
     new_positions = np.array([])
@@ -146,6 +144,9 @@ def fit_quintic_splines_without_stop(positions, velocities, accelerations, times
     new_jerks = calc_derivative_from_sequence(new_accelerations, new_times)
 
     return new_positions, new_velocities, new_accelerations, new_jerks, new_times
+
+
+
 
 
 
