@@ -12,20 +12,10 @@ def get_waypoints(bag_name):
         waypoints = msg.goal.trajectory.joint_trajectory.points
     bag.close()
 
-    positions = np.array([])
-    velocities = np.array([])
-    accelerations = np.array([])
-    times = np.array([])
-    for wp in waypoints:
-        if(positions.size == 0):
-            positions = np.array(wp.positions)
-            velocities = np.array(wp.velocities)
-            accelerations = np.array(wp.accelerations)
-        else:
-            positions = np.vstack((positions, np.array(wp.positions)))
-            velocities = np.vstack((velocities, np.array(wp.velocities)))
-            accelerations = np.vstack((accelerations, np.array(wp.accelerations)))
-        times = np.append(times, wp.time_from_start.to_sec())
+    positions = np.array([np.array(wp.positions) for wp in waypoints])
+    velocities = np.array([np.array(wp.velocities) for wp in waypoints])
+    accelerations = np.array([np.array(wp.accelerations) for wp in waypoints])
+    times = np.array([wp.time_from_start.to_sec() for wp in waypoints])
     return (positions, velocities, accelerations, times)
 
 def calc_derivative_from_sequence(sequence, times):
