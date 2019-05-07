@@ -27,34 +27,169 @@ def get_waypoints(bag_name):
         times = np.append(times, wp.time_from_start.to_sec())
     return (positions, velocities, accelerations, times)
 
-def calc_jerk_from_acceleration(accelerations, times):
-    jerks = np.array([0, 0, 0, 0, 0, 0])
-    for i in range(len(accelerations)-1):
+def calc_derivative_from_sequence(sequence, times):
+    derivatives = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
+    for i in range(len(sequence)-1):
         if times[i+1] - times[i] == 0:
-            print "time delta is 0! skipping jerk"
-            jerk = np.array([0, 0, 0, 0, 0, 0])
+            print "time delta is 0! skipping derivative"
+            derivative = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
         else:
-            jerk = np.array([])
-            for j in range(len(accelerations[i])):
-                jerk = np.append(jerk, (accelerations[i+1][j] - accelerations[i][j]) / (times[i+1] - times[i]))
-        jerks = np.vstack((jerks, jerk))
+            derivative = np.array([])
+            for j in range(len(sequence[i])):
+                derivative = np.append(derivative, (sequence[i+1][j] - sequence[i][j]) / (times[i+1] - times[i]))
+        derivatives = np.vstack((derivatives, derivative))
 
-    return jerks
+    return derivatives
 
 
-def plot_waypoints(positions, velocities, accelerations, jerks, times):
+def get_fig_and_axes():
     fig, axes = plt.subplots(nrows=4, ncols=6, sharex=True, sharey=True)
+    return fig, axes
+
+def plot_waypoints(positions, velocities, accelerations, jerks, times, axes, color, marker):
     for i in range(6):
-        axes[0, i].plot(times, [p[i] for p in positions], marker='x', color='red')
-        axes[1, i].plot(times, [v[i] for v in velocities], marker='x', color='blue')
-        axes[2, i].plot(times, [a[i] for a in accelerations], marker='x', color='green')
-        axes[3, i].plot(times, [j[i] for j in jerks], marker='x', color='red')
-    plt.show()
+        axes[0, i].plot(times, [p[i] for p in positions], marker=marker, color=color)
+        axes[1, i].plot(times, [v[i] for v in velocities], marker=marker, color=color)
+        axes[2, i].plot(times, [a[i] for a in accelerations], marker=marker, color=color)
+        axes[3, i].plot(times, [j[i] for j in jerks], marker=marker, color=color)
+    #plt.show()
+
+def fit_quintic_splines_with_stop(positions, times, pause=False):
+    new_positions = np.array([])
+    new_times = np.array([])
+    for j in range(6):
+        pos = np.array([])
+        new_times = np.array([])
+        t_last = 0
+        for i in range(len(times) - 1):
+            t1 = times[i]
+            t2 = times[i+1]
+            if(pause):
+                while t1-t_last > .008:
+                    t_last += .008
+                    pos = np.append(pos, pos[-1])
+                    new_times = np.append(new_times, new_times[-1]+.008)
+                if t2-t1 < .02:
+                    print t2-t1
+                if t2-t1 > .017:
+                    t2 -= .016
+                elif t2-t1 > .01:
+                    t2 -= .08;
+                elif t2-t1 > .005:
+                    t2 -= .004
+            t1a = np.array([t1**5, t1**4, t1**3, t1**2, t1, 1])
+            t2a = np.array([t2**5, t2**4, t2**3, t2**2, t2, 1])
+            q = np.array([[ 1.0*t1a[0],  1.0*t1a[1],  1.0*t1a[2],  1.0*t1a[3],  1.0*t1a[4],  1.0*t1a[5]],
+                          [ 5.0*t1a[1],  4.0*t1a[2],  3.0*t1a[3],  2.0*t1a[4],  1.0*t1a[5],         0.0],
+                          [20.0*t1a[2], 12.0*t1a[3],  6.0*t1a[4],  2.0*t1a[5],         0.0,         0.0],
+                          #[60.0*t1a[0], 24.0*t1a[1],  6.0*t1a[2],         0.0,         0.0,         0.0],
+                          [ 1.0*t2a[0],  1.0*t2a[1],  1.0*t2a[2],  1.0*t2a[3],  1.0*t2a[4],  1.0*t2a[5]],
+                          [ 5.0*t2a[1],  4.0*t2a[2],  3.0*t2a[3],  2.0*t2a[4],  1.0*t2a[5],         0.0],
+                          [20.0*t2a[2], 12.0*t2a[3],  6.0*t2a[4],  2.0*t2a[5],         0.0,         0.0]])
+                          #[60.0*t2a[0], 24.0*t2a[1],  6.0*t2a[2],         0.0,         0.0,         0.0]])
+            #print q
+            p1 = positions[i]
+            p2 = positions[i+1]
+            x = np.array([[ p1[j] ], # position
+                          [  0.0  ], # velocity
+                          [  0.0  ], # acceleration
+                          #[  0.0  ], # jerk
+                          [ p2[j] ], # position
+                          [  0.0  ], # velocity
+                          [  0.0  ]]) # acceleration
+                          #[  0.0  ]]) # jerk
+            #print x
+            v = np.dot(np.linalg.inv(q), x).flatten()
+            #print v
+
+            poly = np.poly1d(v)
+            #print poly
+
+            subset_times = np.arange(start=t_last+.008, stop=t2, step=.008)
+            t_last = subset_times[-1]
+            #print subset_times
+
+            subset_pos = poly(subset_times)
+
+            pos = np.concatenate((pos, subset_pos))
+            new_times = np.concatenate((new_times, subset_times))
+        if(new_positions.size == 0):
+            new_positions = np.transpose(np.array([pos]))
+        else:
+            new_positions = np.hstack((new_positions, np.transpose(np.array([pos]))))
+    new_velocities = calc_derivative_from_sequence(new_positions, new_times)
+    new_accelerations = calc_derivative_from_sequence(new_velocities, new_times)
+    new_jerks = calc_derivative_from_sequence(new_accelerations, new_times)
+
+    return new_positions, new_velocities, new_accelerations, new_jerks, new_times
+
+def fit_quintic_splines_without_stop(positions, velocities, accelerations, times):
+    new_positions = np.array([])
+    new_times = np.array([])
+    for j in range(6):
+        pos = np.array([])
+        new_times = np.array([])
+        t_last = 0
+        for i in range(len(times) - 1):
+            t1 = times[i]
+            t2 = times[i+1]
+            t1a = np.array([t1**5, t1**4, t1**3, t1**2, t1, 1])
+            t2a = np.array([t2**5, t2**4, t2**3, t2**2, t2, 1])
+            q = np.array([[ 1.0*t1a[0],  1.0*t1a[1],  1.0*t1a[2],  1.0*t1a[3],  1.0*t1a[4],  1.0*t1a[5]],
+                          [ 5.0*t1a[1],  4.0*t1a[2],  3.0*t1a[3],  2.0*t1a[4],  1.0*t1a[5],         0.0],
+                          [20.0*t1a[2], 12.0*t1a[3],  6.0*t1a[4],  2.0*t1a[5],         0.0,         0.0],
+                          [ 1.0*t2a[0],  1.0*t2a[1],  1.0*t2a[2],  1.0*t2a[3],  1.0*t2a[4],  1.0*t2a[5]],
+                          [ 5.0*t2a[1],  4.0*t2a[2],  3.0*t2a[3],  2.0*t2a[4],  1.0*t2a[5],         0.0],
+                          [20.0*t2a[2], 12.0*t2a[3],  6.0*t2a[4],  2.0*t2a[5],         0.0,         0.0]])
+            p1 = positions[i]
+            p2 = positions[i+1]
+            v1 = velocities[i]
+            v2 = velocities[i+1]
+            a1 = accelerations[i]
+            a2 = accelerations[i+1]
+            x = np.array([[ p1[j] ], # position
+                          [ v1[j] ], # velocity
+                          [ a1[j] ], # acceleration
+                          [ p2[j] ], # position
+                          [ v2[j] ], # velocity
+                          [ a2[j] ]]) # acceleration
+            v = np.dot(np.linalg.inv(q), x).flatten()
+            poly = np.poly1d(v)
+            subset_times = np.arange(start=t_last+.008, stop=t2, step=.008)
+            t_last = subset_times[-1]
+            subset_pos = poly(subset_times)
+            pos = np.concatenate((pos, subset_pos))
+            new_times = np.concatenate((new_times, subset_times))
+
+        if(new_positions.size == 0):
+            new_positions = np.transpose(np.array([pos]))
+        else:
+            new_positions = np.hstack((new_positions, np.transpose(np.array([pos]))))
+    new_velocities = calc_derivative_from_sequence(new_positions, new_times)
+    new_accelerations = calc_derivative_from_sequence(new_velocities, new_times)
+    new_jerks = calc_derivative_from_sequence(new_accelerations, new_times)
+
+    return new_positions, new_velocities, new_accelerations, new_jerks, new_times
+
 
 
 # Raw moveit trajectories (from rviz)
-(positions, velocities, accelerations, times) = get_waypoints('a.bag')
-jerks = calc_jerk_from_acceleration(accelerations, times)
-plot_waypoints(positions, velocities, accelerations, jerks, times)
+(positions, velocities, accelerations, times) = get_waypoints('c.bag')
+jerks = calc_derivative_from_sequence(accelerations, times)
+#plot_waypoints(positions, velocities, accelerations, jerks, times)
 
 # Use naive method stopping at each waypoint to take the position trajectory and time parameterize appropriately (using quintic)
+new_positions, new_velocities, new_accelerations, new_jerks, new_times = fit_quintic_splines_with_stop(positions, times)
+
+# plot
+fig, axes = get_fig_and_axes()
+plot_waypoints(positions, velocities, accelerations, jerks, times, axes, "red", "x")
+plot_waypoints(new_positions, new_velocities, new_accelerations, new_jerks, new_times, axes, "blue", None)
+#plt.show()
+
+# Use quintic splines, but with velocities/accelerations matching moveit
+new_positions, new_velocities, new_accelerations, new_jerks, new_times = fit_quintic_splines_without_stop(positions, velocities, accelerations, times)
+fig, axes = get_fig_and_axes()
+plot_waypoints(positions, velocities, accelerations, jerks, times, axes, "red", "x")
+plot_waypoints(new_positions, new_velocities, new_accelerations, new_jerks, new_times, axes, "blue", None)
+plt.show()
