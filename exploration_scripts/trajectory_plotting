@@ -114,7 +114,10 @@ def fit_quintic_splines(positions, velocities, accelerations, times, stop=False)
 
 
 # Raw moveit trajectories (from rviz)
-(positions, velocities, accelerations, times) = get_waypoints('a.bag')
+if(len(sys.argv) < 2):
+    print "Err: add name of test script as command line arg"
+    sys.exit()
+(positions, velocities, accelerations, times) = get_waypoints(sys.argv[1])
 jerks = calc_derivative_from_sequence(accelerations, times)
 
 # Use naive method stopping at each waypoint to take the position trajectory and time parameterize appropriately (using quintic splines)
