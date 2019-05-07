@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 from matplotlib import pyplot as plt
+import numpy as np
 import rosbag
 
 def get_waypoints(bag_name):
@@ -10,28 +11,33 @@ def get_waypoints(bag_name):
         waypoints = msg.goal.trajectory.joint_trajectory.points
     bag.close()
 
-    positions = []
-    velocities = []
-    accelerations = []
-    times = []
+    positions = np.array([])
+    velocities = np.array([])
+    accelerations = np.array([])
+    times = np.array([])
     for wp in waypoints:
-        positions.append(wp.positions)
-        velocities.append(wp.velocities)
-        accelerations.append(wp.accelerations)
-        times.append(wp.time_from_start.to_sec())
+        if(positions.size == 0):
+            positions = np.array(wp.positions)
+            velocities = np.array(wp.velocities)
+            accelerations = np.array(wp.accelerations)
+        else:
+            positions = np.vstack((positions, np.array(wp.positions)))
+            velocities = np.vstack((velocities, np.array(wp.velocities)))
+            accelerations = np.vstack((accelerations, np.array(wp.accelerations)))
+        times = np.append(times, wp.time_from_start.to_sec())
     return (positions, velocities, accelerations, times)
 
 def calc_jerk_from_acceleration(accelerations, times):
-    jerks = [[0, 0, 0, 0, 0, 0]]
+    jerks = np.array([0, 0, 0, 0, 0, 0])
     for i in range(len(accelerations)-1):
         if times[i+1] - times[i] == 0:
             print "time delta is 0! skipping jerk"
-            jerk = [0, 0, 0, 0, 0, 0]
+            jerk = np.array([0, 0, 0, 0, 0, 0])
         else:
-            jerk = []
+            jerk = np.array([])
             for j in range(len(accelerations[i])):
-                jerk.append((accelerations[i+1][j] - accelerations[i][j]) / (times[i+1] - times[i]))
-        jerks.append(jerk)
+                jerk = np.append(jerk, (accelerations[i+1][j] - accelerations[i][j]) / (times[i+1] - times[i]))
+        jerks = np.vstack((jerks, jerk))
 
     return jerks
 
@@ -46,7 +52,9 @@ def plot_waypoints(positions, velocities, accelerations, jerks, times):
     plt.show()
 
 
-# DO STUFF
+# Raw moveit trajectories (from rviz)
 (positions, velocities, accelerations, times) = get_waypoints('a.bag')
 jerks = calc_jerk_from_acceleration(accelerations, times)
 plot_waypoints(positions, velocities, accelerations, jerks, times)
+
+# Use naive method stopping at each waypoint to take the position trajectory and time parameterize appropriately (using quintic)
