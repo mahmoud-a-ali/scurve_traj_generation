@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 from matplotlib import pyplot as plt
 import numpy as np
-from numpy.polynomial import polynomial
+from numpy.polynomial import Polynomial
 
 blend_radius = 0.1
 
@@ -33,70 +33,84 @@ if 0:
     plt.show()
 
 class Segment:
-    def __init__(self, t0, jerk, acc0, vel0, pos0):
+    def __init__(self, jerk, acc0, vel0, pos0):
         """
         Jerk is assumed to be constant.
         """
-        self.t0 = t0
         self.jerk = jerk
         self.acc0 = acc0
         self.vel0 = vel0
         self.pos0 = pos0
 
-        self._acc_polynomial = np.array((acc0, jerk))
-        self._vel_polynomial = np.polyint(self._acc_polynomial, k=[vel0])
-        self._pos_polynomial = np.polyint(self._vel_polynomial, k=[pos0])
+        self._acc_polynomial = Polynomial((acc0, jerk))
+        self._vel_polynomial = self._acc_polynomial.integ(k=vel0)
+        self._pos_polynomial = self._vel_polynomial.integ(k=pos0)
 
     def acc(self, t):
-        return polynomial.polyval(t, self._acc_polynomial)
+        return self._acc_polynomial(t)
 
     def vel(self, t):
-        return polynomial.polyval(t, self._vel_polynomial)
+        return self._vel_polynomial(t)
 
     def pos(self, t):
-        return polynomial.polyval(t, self._pos_polynomial)
+        return self._pos_polynomial(t)
 
 class PiecewiseTrajectory:
-    def __init__(self, segments):
+    def __init__(self, start_times, end_time, segments):
+        self.start_times = np.asarray(start_times, dtype=np.float64)
+        self.end_time = end_time
         self.segments = segments
 
     def chooseSegment(self, t):
         """
         Choose the segment that contains this time.
         """
-        for seg in self.segments:
-            if seg.t0 <= t:
-                return seg
-        return None
+        seg_i = np.searchsorted(self.start_times, t, side='right') - 1
+        return self.segments[seg_i], self.start_times[seg_i]
 
     def jerk(self, t):
-        return self.chooseSegment(t).jerk(t)
+        seg, seg_start_time = self.chooseSegment(t)
+        return seg.jerk(t - seg_start_time)
 
     def acc(self, t):
-        return self.chooseSegment(t).acc(t)
+        seg, seg_start_time = self.chooseSegment(t)
+        return seg.acc(t - seg_start_time)
 
     def vel(self, t):
-        return self.chooseSegment(t).vel(t)
+        seg, seg_start_time = self.chooseSegment(t)
+        return seg.vel(t - seg_start_time)
 
-    def pos(self, t):
-        return self.chooseSegment(t).pos(t)
+def fit_seven_segment(p_start, p_end, j_max, a_max, v_max):
+    t0 = 0.0
+    num_segments = 7
+    seg0 = Segment(j_max, 0.0, 0.0, p_start)
+    t1 = a_max / j_max
+    seg1 = Segment(0.0, seg0.acc(t1), seg0.vel(t1), seg0.pos(t1))
+    t2 = t1 + (v_max - seg1.vel(0) * 2.0) / a_max
+    seg2 = Segment(-j_max, a_max, seg1.vel(t2-t1), seg1.pos(t2-t1))
+    t3 = t2 + (t1 - t0) # Same length as seg0
+    seg3 = Segment(0.0, 0.0, seg2.vel(t3-t2), seg2.pos(t3-t2))
+    t4 = ((p_end - p_start) - 2.0 * (seg3.pos(0.0) - p_start)) / v_max
+    seg4 = Segment(-j_max, 0.0, v_max, seg3.pos(t4-t3))
+    t5 = t4 + (t3 - t2)
+    seg5 = Segment(0.0, -a_max, seg4.vel(t5 - t4), seg4.pos(t5 - t4))
+    t6 = t5 + (t2 - t1)
+    seg6 = Segment(j_max, seg5.acc(t6 - t5), seg5.vel(t6 - t5), seg5.pos(t6-t5))
+    t7 = t6 + (t1 - t0)
+    trajectory = PiecewiseTrajectory([t0, t1, t2, t3, t4, t5, t6], t7, [seg0, seg1, seg2, seg3, seg4,
+        seg5, seg6])
+    return trajectory
 
 j_max = 1.0
 a_max = 1.0
 v_max = 3.0
 
-p0 = 0.0
-p7 = 30.0
+p_start = 0.0
+p_end = 30.0
 
-t0 = 0.0
-num_segments = 7
-seg0 = Segment(0.0, j_max, 0.0, 0.0, p0)
-t1 = a_max / j_max
-seg1 = Segment(t1, 0.0, seg0.acc(t1), seg0.vel(t1), seg0.pos(t1))
-t2 = t1 + (v_max - seg0.vel(t1) * 2.0) / a_max
-trajectory = PiecewiseTrajectory([seg0])
+trajectory = fit_seven_segment(p_start, p_end, j_max, a_max, v_max)
 
-times = np.linspace(t0, t2, 1000)
-velocities = np.array([trajectory.segments[0].vel(t) for t in times])
-plt.plot(times, velocities, 'x')
+plot_times = np.linspace(trajectory.start_times[0], trajectory.end_time, 1000)
+velocities = np.array([trajectory.vel(t) for t in plot_times])
+plt.plot(plot_times, velocities, 'x')
 plt.show()
