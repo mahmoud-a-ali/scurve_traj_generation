@@ -3,35 +3,6 @@ from matplotlib import pyplot as plt
 import numpy as np
 from numpy.polynomial import Polynomial
 
-blend_radius = 0.1
-
-def fit_cubic(p0, p1, v0, v1):
-    """
-    Within a blend circle, we model the value of joint i as a cubic function:
-
-        p_i(s) = a_i * s**3 + b_i * s**2 + c_i * s + d_i
-        v_i(s) = 1/3 * a_i * s**2 + 1/2*b_i*s
-
-    Note: while we use v_i to denote the "velocity" of joint i, it is with respect to
-    the (somewhat arbitrary) variable "s" instead of time.
-
-    The 2 position and two velocity constraints give us a system of 4 equations:
-
-    """
-    pass
-
-
-# Test path
-path = np.array([(0.0, 0.0), (1.0, 1.0), (1.5, 0.8), (-0.2, 0.4)])
-
-# Plot path in 2D joint space
-if 0:
-    plt.plot([j[0] for j in path], [j[1] for j in path])
-    for j in path[1:-1]:
-        plt.gca().add_artist(plt.Circle((j[0], j[1]), blend_radius, color='r', fill=False))
-    plt.gca().axis('equal')
-    plt.show()
-
 class Segment:
     def __init__(self, jerk0, acc0, vel0, pos0):
         """
@@ -164,6 +135,9 @@ def fit_seven_segment(p_start, p_end, j_max, a_max, v_max):
         a = segments[-1].acc(T)
         segment_boundary_times.append(segment_boundary_times[-1] + T)
     return PiecewiseTrajectory(segment_boundary_times, segments)
+
+# Test path
+path = np.array([(0.0, 0.0), (1.0, 1.0), (1.5, 0.8), (-0.2, 0.4)])
 
 # j_max, a_max, v_max, p_start, p_end
 tests = [
