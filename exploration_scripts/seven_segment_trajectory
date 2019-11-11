@@ -5,7 +5,7 @@ import numpy as np
 from numpy.polynomial import Polynomial
 from sympy import Matrix, Piecewise, Symbol
 
-def evaluate_piecewise(boundaries, functions, symbol, value):
+def evaluate_piecewise(boundaries, functions, value, symbol):
     if value == boundaries[-1]:
         # For convenience, we include the final time in the last segment
         func_i = len(functions) - 1
@@ -201,6 +201,15 @@ def parameterize_path(path):
         functions.append(q0 + direction * (s - s0))
     return boundaries, functions
 
+def sample_path(boundaries, functions, symbol, npoints):
+    S = np.linspace(boundaries[0], boundaries[-1], npoints)
+    path_points = np.array([evaluate_piecewise(boundaries, functions, s, symbol) for s in S])
+    return S, path_points
+
+def plot_2d_path(boundaries, functions, symbol, npoints):
+    S, path_points = sample_path(boundaries, functions, symbol, npoints)
+    plt.plot(path_points[:,0], path_points[:,1], 'r.-')
+
 # Test path
 path = np.array([(0.0, 0.0), (1.0, 1.0), (1.5, 0.8), (-0.2, 0.4)])
 
@@ -222,7 +231,6 @@ if 0:
 boundaries, functions = parameterize_path(path)
 
 s = Symbol('s')
-X = np.linspace(boundaries[0], boundaries[-1], 100)
-Y = [evaluate_piecewise(boundaries, functions, s, x) for x in X]
-plt.plot(X, Y, '.')
+plot_2d_path(boundaries, functions, s, 100)
+plt.plot([q[0] for q in path], [q[1] for q in path], 'bx')
 plt.show()
