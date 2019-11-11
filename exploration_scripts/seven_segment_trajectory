@@ -1,7 +1,17 @@
 #!/usr/bin/env python
+from scipy import linalg
 from matplotlib import pyplot as plt
 import numpy as np
 from numpy.polynomial import Polynomial
+from sympy import Matrix, Piecewise, Symbol
+
+def evaluate_piecewise(boundaries, functions, symbol, value):
+    if value == boundaries[-1]:
+        # For convenience, we include the final time in the last segment
+        func_i = len(functions) - 1
+    else:
+        func_i = np.searchsorted(boundaries, value, side='right') - 1
+    return np.array(functions[func_i].subs(symbol, value)).astype(np.float64).flatten()
 
 class Segment:
     def __init__(self, jerk0, acc0, vel0, pos0):
@@ -173,6 +183,24 @@ def plot_trajectory(trajectory, n_points=1000, j_max=None, a_max=None, v_max=Non
         axes[3].plot(plot_times, [-j_max] * len(plot_times), '--', color='red')
     plt.show()
 
+def parameterize_path(path):
+    """
+    Represent the given path as a function q_t = f(s).
+    """
+    s = Symbol('s')
+    boundaries = [0.0]
+    functions = []
+    for q0, q1 in zip(path[:-1], path[1:]):
+        q0 = Matrix(q0)
+        q1 = Matrix(q1)
+        s0 = boundaries[-1]
+        length = (q1 - q0).norm()
+        s1 = s0 + length
+        direction = (q1 - q0) / length
+        boundaries.append(float(s1))
+        functions.append(q0 + direction * (s - s0))
+    return boundaries, functions
+
 # Test path
 path = np.array([(0.0, 0.0), (1.0, 1.0), (1.5, 0.8), (-0.2, 0.4)])
 
@@ -188,5 +216,13 @@ for j_max, a_max, v_max, p_start, p_end in tests:
     test_fit_seven_segment(p_start, p_end, j_max, a_max, v_max, False)
 
 # Plot the last one
-test_fit_seven_segment(p_start, p_end, j_max, a_max, v_max, True)
+if 0:
+    test_fit_seven_segment(p_start, p_end, j_max, a_max, v_max, True)
 
+boundaries, functions = parameterize_path(path)
+
+s = Symbol('s')
+X = np.linspace(boundaries[0], boundaries[-1], 100)
+Y = [evaluate_piecewise(boundaries, functions, s, x) for x in X]
+plt.plot(X, Y, '.')
+plt.show()
