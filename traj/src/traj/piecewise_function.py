@@ -2,14 +2,21 @@ import numpy as np
 from sympy import Matrix, Piecewise, Symbol
 
 class PiecewiseFunction:
-    def __init__(self, times, functions, independent_variable):
-        self.times = times
+    """
+    A piecewise function of a single variable.
+
+    Uses sympy as its function representation, but because we know we are a function of
+    one variable, we are able to compute integrals correctly (unlike sympy's builtin piecewise
+    function).
+    """
+    def __init__(self, boundaries, functions, independent_variable):
+        self.boundaries = boundaries
         self.functions = functions
         self.independent_variable = independent_variable
-        assert len(times) - 1 == len(functions)
+        assert len(boundaries) - 1 == len(functions)
 
     def __call__(self, value):
-        if value == boundaries[-1]:
+        if value == self.boundaries[-1]:
             # For convenience, we include the final time in the last segment
             func_i = len(self.functions) - 1
         else:
@@ -21,5 +28,5 @@ class PiecewiseFunction:
         independent_variable_values = np.linspace(
                 self.boundaries[0], self.boundaries[-1], npoints)
         path_points = np.array([self(v) for v in independent_variable_values])
-        return S, path_points
+        return independent_variable_values, path_points
 

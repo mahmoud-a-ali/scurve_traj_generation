@@ -23,6 +23,12 @@ def plot_trajectory(trajectory, n_points=1000, j_max=None, a_max=None, v_max=Non
         axes[3].plot(plot_times, [-j_max] * len(plot_times), '--', color='red')
     plt.show()
 
-def plot_2d_path(boundaries, functions, symbol, npoints):
-    S, path_points = sample_path(boundaries, functions, symbol, npoints)
-    plt.plot(path_points[:,0], path_points[:,1], 'r.-')
+def plot_2d_path(piecewise_function, npoints, label='path points'):
+    """
+    Plot a 2d path that is represented as a piecewise function of a single variable.
+    """
+    S, path_points = piecewise_function.sample(npoints)
+    plt.plot(path_points[:,0], path_points[:,1], 'r.-', label=label)
+    plt.title('Joint space path')
+    plt.xlabel('Joint 1')
+    plt.ylabel('Joint 2')
