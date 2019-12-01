@@ -17,6 +17,8 @@ def parameterize_path(path):
     to the length of path travesed. This "length" is in N-dimensional joint space, but
     otherwise is the same as we would compute a path length.
 
+    Put another way, the path length from s=0 to s=s' is equal to the integral from 0 to s'
+    of the norm of the derivative of the parameterized path function w.r.t. the variable s
     """
     s = Symbol('s')
     boundaries = [0.0]
