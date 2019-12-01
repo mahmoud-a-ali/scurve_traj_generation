@@ -1,8 +1,9 @@
-from sympy import integrate, Matrix, Piecewise, Symbol
+from sympy import integrate, Symbol
+from sympy.core.numbers import Float
 
 from .piecewise_function import PiecewiseFunction
 
-def fit_seven_segment(p_start, p_end, j_max, a_max, v_max):
+def fit_seven_segment(j_max, a_max, v_max, p_start, p_end):
     """
     Find the optimal seven segment trajectory for zero start and end velocities, and the given
     start and end positions.
@@ -73,7 +74,7 @@ def fit_seven_segment(p_start, p_end, j_max, a_max, v_max):
     t = Symbol('t')
     for j0, T in segment_jerks_and_durations:
         times.append(times[-1] + T)
-        j = j0
+        j = Float(j0)
         a = (integrate(j, t) + a0).subs({t: t - times[-1]})
         v = integrate(a, t) + v0
         p = integrate(v, t) + p0

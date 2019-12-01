@@ -4,7 +4,7 @@ from traj import fit_seven_segment
 
 def check_fit_seven_segment(j_max, a_max, v_max, p_start, p_end):
     position, velocity, jerk, acceleration = fit_seven_segment(
-            p_start, p_end, j_max, a_max, v_max)
+            j_max, a_max, v_max, p_start, p_end)
 
     t_start = position.boundaries[0]
     t_end = position.boundaries[-1]

@@ -8,25 +8,15 @@ import numpy as np
 
 import traj
 
-# j_max, a_max, v_max, p_start, p_end
-tests = [
-        (0.1, 3.0, 0.1, 0.0, 30.0), # Reach max velocity bot not max acceleration
-        (0.1, 3.0, 6.0, 0.0, 30.0), # Reach max acceleration but not max velocity
-        (0.1, 2.3, 3.1, 0.0, 0.4), # Don't reach max velocity or max acceleration
-        (0.1, 0.4, 2.0, 0.0, 30.0), # Reach max acceleration and also velocity
-        ]
+j_max = 0.1
+a_max = 0.4
+v_max = 2.0
+p_start = 0.0
+p_end = 30.0
 
-# Test path
-path = np.array([(0.0, 0.0), (1.0, 1.0), (1.5, 0.8), (-0.2, 0.4)])
-
-path_function = traj.parameterize_path(path)
-
-# Plot sampled points along the parametrized path.
-traj.plot.plot_2d_path(path_function, 100)
-
-# Plot the waypoints in the original path for comparison.
-plt.plot([q[0] for q in path], [q[1] for q in path], 'bx', label='original waypoints')
-
-plt.legend()
+position, velocity, jerk, acceleration = traj.fit_seven_segment(
+        j_max, a_max, v_max, p_start, p_end)
+traj.plot.plot_trajectory(position, velocity, acceleration, jerk, n_points=100,
+        v_max=v_max, a_max=a_max, j_max=j_max)
 plt.show()
 
