@@ -31,5 +31,6 @@ def parameterize_path(path):
         s1 = s0 + length
         direction = (q1 - q0) / length
         boundaries.append(float(s1))
-        functions.append(q0 + direction * (s - s0))
+        functions.append(q0 + direction * s)
     return PiecewiseFunction(boundaries, functions, s)
+
