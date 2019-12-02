@@ -3,7 +3,7 @@ from sympy.core.numbers import Float
 
 from .piecewise_function import PiecewiseFunction
 
-def fit_seven_segment(j_max, a_max, v_max, p_start, p_end):
+def fit_seven_segment(p_start, p_end, v_max, a_max, j_max):
     """
     Find the optimal seven segment trajectory for zero start and end velocities, and the given
     start and end positions.
@@ -34,12 +34,9 @@ def fit_seven_segment(j_max, a_max, v_max, p_start, p_end):
         print(T_jmax, j_max)
         a_max = T_jmax * j_max
 
-    # Compute the minimum distance that each case can travel. D_thr1 is the minimum distance for
-    # a trajectory that hits both max acceleration. D_thr2 is the minimum distance for a
-    # trajectory that hits max acceleration but not max velocity.
-    #
-    # Q: shouldn't there also be a case where v_max is reached but a_max is not, depending on the
-    #    relation between v_max, a_max, and j_max?
+    # Compute the minimum distance that each case can travel. D_thr1 is the minimum distance for a
+    # trajectory that hits both max acceleration and max velocity. D_thr2 is the minimum distance
+    # for a trajectory that hits max acceleration but not max velocity.
     D_thr1 = (a_max * v_max) / j_max + v_max**2 / a_max
     D_thr2 = 2.0 * a_max**3 / j_max**2
 
@@ -75,13 +72,16 @@ def fit_seven_segment(j_max, a_max, v_max, p_start, p_end):
     for j0, T in segment_jerks_and_durations:
         times.append(times[-1] + T)
         j = Float(j0)
-        a = (integrate(j, t) + a0).subs({t: t - times[-1]})
+        a = integrate(j, t) + a0
         v = integrate(a, t) + v0
         p = integrate(v, t) + p0
         jerk_functions.append(j)
         acceleration_functions.append(a)
         velocity_functions.append(v)
         position_functions.append(p)
+        a0 = a.subs({t: T})
+        v0 = v.subs({t: T})
+        p0 = p.subs({t: T})
     position = PiecewiseFunction(times, position_functions, t)
     velocity = PiecewiseFunction(times, velocity_functions, t)
     acceleration = PiecewiseFunction(times, acceleration_functions, t)

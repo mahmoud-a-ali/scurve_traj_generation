@@ -14,8 +14,8 @@ v_max = 2.0
 p_start = 0.0
 p_end = 30.0
 
-position, velocity, jerk, acceleration = traj.fit_seven_segment(
-        j_max, a_max, v_max, p_start, p_end)
+position, velocity, acceleration, jerk = traj.fit_seven_segment(
+        p_start, p_end, v_max, a_max, j_max)
 traj.plot.plot_trajectory(position, velocity, acceleration, jerk, n_points=100,
         v_max=v_max, a_max=a_max, j_max=j_max)
 plt.show()

@@ -1,7 +1,7 @@
 from matplotlib import pyplot as plt
 import numpy as np
 
-def plot_trajectory(jerk, acceleration, velocity, position, n_points=1000, j_max=None,
+def plot_trajectory(position, velocity, acceleration, jerk, n_points=1000, j_max=None,
         a_max=None, v_max=None):
     plot_times = np.linspace(position.boundaries[0], position.boundaries[-1], 1000)
     positions = np.array([position(t) for t in plot_times])

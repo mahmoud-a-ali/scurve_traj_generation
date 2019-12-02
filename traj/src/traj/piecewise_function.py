@@ -21,8 +21,9 @@ class PiecewiseFunction:
             func_i = len(self.functions) - 1
         else:
             func_i = np.searchsorted(self.boundaries, value, side='right') - 1
+        value_relative = value - self.boundaries[func_i]
         return np.array(self.functions[func_i].subs(
-            self.independent_variable, value)).astype(np.float64).flatten()
+            self.independent_variable, value_relative)).astype(np.float64).flatten()
 
     def sample(self, npoints):
         independent_variable_values = np.linspace(
