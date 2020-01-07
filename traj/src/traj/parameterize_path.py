@@ -17,12 +17,15 @@ def parameterize_path(path):
     to the length of path travesed. This "length" is in N-dimensional joint space, but
     otherwise is the same as we would compute a path length.
 
-    Put another way, the path length from s=0 to s=s' is equal to the integral from 0 to s'
-    of the norm of the derivative of the parameterized path function w.r.t. the variable s
+    Put another way, the path length from s=0 to s=S is equal to the integral from 0 to S
+    of the norm of the derivative of the parameterized path function w.r.t. the variable s.
     """
     s = Symbol('s')
     boundaries = [0.0]
     functions = []
+    # q0 and q1 are succesive joint space posions in the path. "boundaries" are the values of the
+    # independent variable (often time) at which we switch from one function to the next in our
+    # piecewise representation.
     for q0, q1 in zip(path[:-1], path[1:]):
         q0 = Matrix(q0)
         q1 = Matrix(q1)

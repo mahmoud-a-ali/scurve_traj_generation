@@ -69,6 +69,7 @@ def fit_seven_segment(p_start, p_end, v_max, a_max, j_max):
     velocity_functions = []
     position_functions = []
     t = Symbol('t')
+    # Integrate jerk starting from the start of the trajectory and going all the way through the end.
     for j0, T in segment_jerks_and_durations:
         times.append(times[-1] + T)
         j = Float(j0)
