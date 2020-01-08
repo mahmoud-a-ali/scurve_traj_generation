@@ -3,7 +3,7 @@ from sympy.core.numbers import Float
 
 from .piecewise_function import PiecewiseFunction
 
-def fit_seven_segment(p_start, p_end, v_max, a_max, j_max):
+def fit_seven_segment(p_start, p_end, v_max, a_max, j_max, independent_variable=Symbol('t')):
     """
     Find the optimal seven segment trajectory for zero start and end velocities, and the given
     start and end positions.
@@ -68,24 +68,23 @@ def fit_seven_segment(p_start, p_end, v_max, a_max, j_max):
     acceleration_functions = []
     velocity_functions = []
     position_functions = []
-    t = Symbol('t')
     # Integrate jerk starting from the start of the trajectory and going all the way through the end.
     for j0, T in segment_jerks_and_durations:
         times.append(times[-1] + T)
         j = Float(j0)
-        a = integrate(j, t) + a0
-        v = integrate(a, t) + v0
-        p = integrate(v, t) + p0
+        a = integrate(j, independent_variable) + a0
+        v = integrate(a, independent_variable) + v0
+        p = integrate(v, independent_variable) + p0
         jerk_functions.append(j)
         acceleration_functions.append(a)
         velocity_functions.append(v)
         position_functions.append(p)
-        a0 = a.subs({t: T})
-        v0 = v.subs({t: T})
-        p0 = p.subs({t: T})
-    position = PiecewiseFunction(times, position_functions, t)
-    velocity = PiecewiseFunction(times, velocity_functions, t)
-    acceleration = PiecewiseFunction(times, acceleration_functions, t)
-    jerk = PiecewiseFunction(times, jerk_functions, t)
+        a0 = a.subs({independent_variable: T})
+        v0 = v.subs({independent_variable: T})
+        p0 = p.subs({independent_variable: T})
+    position = PiecewiseFunction(times, position_functions, independent_variable)
+    velocity = PiecewiseFunction(times, velocity_functions, independent_variable)
+    acceleration = PiecewiseFunction(times, acceleration_functions, independent_variable)
+    jerk = PiecewiseFunction(times, jerk_functions, independent_variable)
     return position, velocity, acceleration, jerk
 

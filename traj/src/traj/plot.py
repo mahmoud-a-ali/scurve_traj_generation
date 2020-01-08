@@ -1,6 +1,8 @@
 from matplotlib import pyplot as plt
 import numpy as np
 
+joint_colors = ['r', 'b', 'g']
+
 """
 Plot a 1 dimensional trajectory. Plots position, velocity, acceleration, and jerk versus time
 in separate subplots.
@@ -14,24 +16,30 @@ def plot_trajectory(figure, position, velocity, acceleration, jerk, n_points=100
     velocities = np.array([velocity(t) for t in plot_times])
     accelerations = np.array([acceleration(t) for t in plot_times])
     jerks = np.array([jerk(t) for t in plot_times])
-    axes = figure.subplots(4)
-    axes[0].plot(plot_times, positions)
-    axes[0].set_ylabel('position')
-    axes[1].plot(plot_times, velocities)
-    axes[1].set_ylabel('velocity')
+    axes = figure.subplots(4, sharex=True)
+    for joint_i in range(positions.shape[1]):
+        c = joint_colors[joint_i]
+        axes[0].plot(plot_times, positions[:,joint_i], c=c)
+        axes[0].set_ylabel('position')
+        axes[1].plot(plot_times, velocities[:,joint_i], c=c)
+        axes[1].set_ylabel('velocity')
+        axes[2].plot(plot_times, accelerations[:,joint_i], c=c)
+        axes[2].set_ylabel('acceleration')
+        axes[3].plot(plot_times, jerks[:,joint_i], c=c)
+        axes[3].set_ylabel('jerk')
+
     if v_max is not None:
         axes[1].plot(plot_times, [v_max] * len(plot_times), '--', color='red')
         axes[1].plot(plot_times, [-v_max] * len(plot_times), '--', color='red')
-    axes[2].plot(plot_times, accelerations)
-    axes[2].set_ylabel('acceleration')
+
     if a_max is not None:
         axes[2].plot(plot_times, [a_max] * len(plot_times), '--', color='red')
         axes[2].plot(plot_times, [-a_max] * len(plot_times), '--', color='red')
-    axes[3].plot(plot_times, jerks)
-    axes[3].set_ylabel('jerk')
+
     if j_max is not None:
         axes[3].plot(plot_times, [j_max] * len(plot_times), '--', color='red')
         axes[3].plot(plot_times, [-j_max] * len(plot_times), '--', color='red')
+    plt.legend()
 
 """
 Plot the positions for a 2 dimensional path on the provided matplotlib axes.
