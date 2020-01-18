@@ -9,11 +9,11 @@ import traj
 
 # Joint limits (assumed to be the same for all axes).
 max_velocities = np.array([0.3, 0.3])
-max_accelerations = np.array([1.0, 1.0])
-max_jerks = np.array([10.0, 10.0])
+max_accelerations = np.array([0.5, 0.5])
+max_jerks = np.array([2.0, 2.0])
 
 # Test path
-path = np.array([(0.0, 0.0), (0.5, 0.6), (1.5, 0.8), (-0.2, 0.4)])
+path = np.array([(0.0, 0.0), (0.5, 0.6), (-1.5, 0.8), (-0.2, 0.4)])
 
 (trajectory_position_function, trajectory_velocity_function, trajectory_acceleration_funciton,
  trajectory_jerk_function) = traj.trajectory_for_path(path, max_velocities, max_accelerations, max_jerks)

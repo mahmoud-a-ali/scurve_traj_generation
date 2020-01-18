@@ -1,6 +1,7 @@
 from parameterize_path import parameterize_path
 from piecewise_function import PiecewiseFunction
-from seven_segment import fit_seven_segment
+import seven_segment_type3
+import seven_segment_type4
 import plot
 from trajectory import trajectory_for_path
 

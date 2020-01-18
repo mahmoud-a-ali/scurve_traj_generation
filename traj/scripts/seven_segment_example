@@ -3,20 +3,38 @@
 Simple example that computes a seven segment motion profile a 1d motion with given start and
 end positions. Start and end velocity/acceleration/jerk are assumed to be zero.
 """
+import time
+
 from matplotlib import pyplot as plt
-import numpy as np
+from sympy import Symbol
 
 import traj
 
 j_max = 0.1
-a_max = 0.4
-v_max = 2.0
+a_max = 2.0
+v_max = 10.0
 p_start = 0.0
 p_end = 30.0
+v_start = 0.0
+v_end = 0.0
 
-position, velocity, acceleration, jerk = traj.fit_seven_segment(
-        p_start, p_end, v_max, a_max, j_max)
+t = Symbol('t')
+
+
+
+t_start = time.time()
+jerk = traj.seven_segment_type4.fit(p_start, p_end, v_start, v_end, v_max, a_max, j_max, t)
+print('Fit function in {} seconds'.format(time.time() - t_start))
+
+t_start = time.time()
+acceleration = jerk.integral(0.0)
+velocity = acceleration.integral(0.0)
+position = velocity.integral(p_start)
+print('Integrated function in {} seconds'.format(time.time() - t_start))
+
+t_start = time.time()
 traj.plot.plot_trajectory(plt.gcf(), position, velocity, acceleration, jerk, n_points=100,
-        v_max=v_max, a_max=a_max, j_max=j_max)
-plt.show()
+                          v_max=v_max, a_max=a_max, j_max=j_max)
 
+print('Plotted function in {} seconds'.format(time.time() - t_start))
+plt.show()
