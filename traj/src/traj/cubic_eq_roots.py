@@ -15,7 +15,7 @@ def real_roots_cubic_eq ( a,  b,  c,  d):
         rt1, rt2, n_rts = quad_eq_real_root ( b, c, d)
         return rt1, rt2, -100, n_rts
     
-    if (d == 0.0000000):
+    if ( abs(d) < 1e-10):
 #        print "One root is 0. Now divide through by x and use the utility for a SECOND degree quadratic to solve the resulting equation for the other two roots. No further action taken."
         rt1 = 0
         rt2, rt3, n_rts = quad_eq_real_root (a, b, c)
@@ -29,11 +29,10 @@ def real_roots_cubic_eq ( a,  b,  c,  d):
     r = -(27.0*d) + b*(9.0*c - 2.0*(b*b))
     r /= 54.0
     disc = q*q*q + r*r
-    root1 = 0; #The first root is always real.
+#    print "disc= {}".format(disc)
     term1 = (b/3.0)
-    if (disc > 1e-10): # one root real, two are complex
-#        print "disc > 0, disc= "
-#        print disc
+    if (disc > 0.0): # one root real, two are complex
+#        print "disc > 0"
         s = r + math.sqrt(disc)
 #        s = ((s < 0) ? -pow(-s, (1.0/3.0)) : pow(s, (1.0/3.0)))
         if s<0:
@@ -62,7 +61,7 @@ def real_roots_cubic_eq ( a,  b,  c,  d):
     #The remaining options are all real
     x3i =0
     x2r = 0
-    if (disc>=0.000 and disc< 1e-10): # All roots real, at least two are equal.
+    if disc==0.000 : # All roots real, at least two are equal.
 #        print "disc = 0 , disc= " 
 #        print  disc
         disc=0
@@ -84,18 +83,19 @@ def real_roots_cubic_eq ( a,  b,  c,  d):
     #Only option left is that all roots are real and unequal (to get here, q < 0)
 #    print "last case: disc < 0 , disc= "
 #    print disc
-    q = -q
-    dum1 = q*q*q
-    dum1 = math.acos(r/math.sqrt(dum1))
-    r13 = 2.0*math.sqrt(q)
-    x1r= -term1 + r13*math.cos(dum1/3.0)
-    x2r = -term1 + r13*math.cos((dum1 + 2.0*math.pi)/3.0)
-    x3r = -term1 + r13*math.cos((dum1 + 4.0*math.pi)/3.0)
-    rt1= x1r
-    rt2= x2r
-    rt3= x3r
-    return rt1, rt2, rt3, 3
-    #End of cubicSolve
+    else:
+        q = -q
+        dum1 = q*q*q
+        dum1 = math.acos(r/math.sqrt(dum1))
+        r13 = 2.0*math.sqrt(q)
+        x1r= -term1 + r13*math.cos(dum1/3.0)
+        x2r = -term1 + r13*math.cos((dum1 + 2.0*math.pi)/3.0)
+        x3r = -term1 + r13*math.cos((dum1 + 4.0*math.pi)/3.0)
+        rt1= x1r
+        rt2= x2r
+        rt3= x3r
+        return rt1, rt2, rt3, 3
+        #End of cubicSolve
 
 
 
@@ -165,11 +165,15 @@ def min_positive_root3( r1,  r2,  r3):
 
 
 ##### test
-#a=1
-#b=6
-#c=-11
-#d=2
-#
+#a=1.2      
+#b=2.3  
+#c=3.4   
+#d=4.5
+##
+#a=2.0 
+#b=0.0 
+#c=0.00099025765642 
+#d=-2.44788172224e-05
 #rt1, rt2, rt3, n_rts = real_roots_cubic_eq ( a,  b,  c,  d)
 #print "rt1, rt2, rt3, n_rts: "
 #print rt1, rt2, rt3, n_rts
