@@ -7,3 +7,6 @@ from trajectory import trajectory_for_path
 
 from traj_segment import fit_traj_segment
 from segment_planning import traj_segment_planning
+from segment_planning import calculate_minPos_reachAcc_maxJrkTime_maxAccTime_to_final_vel
+
+from plot_traj_segment import plot_traj_segment
