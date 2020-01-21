@@ -3,15 +3,19 @@ from sympy.core.numbers import Float
 
 from .piecewise_function import PiecewiseFunction
 
+# Turns on extra velidation of generated trajectories. The validation is quite expensive, so you probably want it off
+# most of the time. Enabling it while debugging catches problems earlier, making it easier to find the bug.
+VALIDATION_ENABLED = False
+
 
 class InvalidTrajectory(Exception):
     pass
 
 
 def validate(p_start, p_end, v_start, v_end, v_max, a_max, j_max, piecewise_jerk_function, independent_variable):
-    piecewise_acceleration_function = piecewise_jerk_function.integral(0.0)
-    piecewise_velocity_function = piecewise_acceleration_function.integral(v_start)
-    piecewise_position_function = piecewise_velocity_function.integral(p_start)
+    piecewise_acceleration_function = piecewise_jerk_function.integrate(0.0)
+    piecewise_velocity_function = piecewise_acceleration_function.integrate(v_start)
+    piecewise_position_function = piecewise_velocity_function.integrate(p_start)
     boundaries = piecewise_jerk_function.boundaries
 
     if boundaries[0] != 0.0:
@@ -44,15 +48,18 @@ def validate(p_start, p_end, v_start, v_end, v_max, a_max, j_max, piecewise_jerk
             raise InvalidTrajectory()
         if (np.abs(velocity) - np.abs(v_max)) > 1e-8:
             raise InvalidTrajectory()
-        #if (np.abs(position) - np.abs(p_end)) > 1e-8:
+        # if (np.abs(position) - np.abs(p_end)) > 1e-8:
         #    raise InvalidTrajectory()
     return True
 
 
-def validate_three_segment(independent_variable_start, v_start, v_end, a_max, j_max, piecewise_jerk_function):
-    piecewise_acceleration_function = piecewise_jerk_function.integral(0.0)
-    piecewise_velocity_function = piecewise_acceleration_function.integral(v_start)
+def validate_acceleration_segments(independent_variable_start, v_start, v_end, a_max, j_max, piecewise_jerk_function):
+    piecewise_acceleration_function = piecewise_jerk_function.integrate(0.0)
+    piecewise_velocity_function = piecewise_acceleration_function.integrate(v_start)
     boundaries = piecewise_jerk_function.boundaries
+
+    if not np.isfinite(boundaries).all():
+        raise InvalidTrajectory()
 
     if boundaries[0] != independent_variable_start:
         raise InvalidTrajectory()
@@ -74,85 +81,87 @@ def validate_three_segment(independent_variable_start, v_start, v_end, a_max, j_
             raise InvalidTrajectory()
         if (np.abs(acceleration) - np.abs(a_max)) > 1e-8:
             raise InvalidTrajectory()
+        if not np.isfinite(jerk):
+            raise InvalidTrajectory()
+        if not np.isfinite(acceleration):
+            raise InvalidTrajectory()
     return True
 
 
-def fit_three_segment_given_cruising_acceleration(independent_variable_start, v_start, v_end, a_cruise, j_max,
-                                                  independent_variable):
-    segment_1_jerk = np.sign(a_cruise) * j_max
-    segment_2_jerk = 0.0
-    segment_3_jerk = np.sign(-a_cruise) * j_max
-    if a_cruise == 0.0:
-        # We special case this "stay in one place" condition because we'd run into
-        # divide-by-zero problems if we tried to calculate out the durations of
-        # each segment.
-        if v_end - v_start == 0.0:
-            segment_1_duration = 0.0
-            segment_2_duration = 0.0
-            segment_3_duration = segment_1_duration
-        else:
-            return None
-    else:
-        segment_1_duration = a_cruise / segment_1_jerk
-        assert (segment_1_duration >= 0.0)
-        segment_3_duration = segment_1_duration
-        v_start_of_segment_2 = v_start + 0.5 * segment_1_jerk * segment_1_duration ** 2.0
-        v_end_of_segment_2 = v_end + 0.5 * segment_3_jerk * segment_3_duration ** 2.0
-        segment_2_duration = (v_end_of_segment_2 - v_start_of_segment_2) / a_cruise
-        if segment_2_duration < 0.0:
-            return None
+def fit_acceleration_triangle(v_start, v_end, a_max, j_max, independent_variable):
+    """
+    Positive acceleration triangle: v_end is greater than v_start, and the acceleration
+    at the start and end is the same.
+    """
+    assert (a_max >= 0.0)
+    assert (j_max >= 0.0)
+    if np.isclose(v_start, v_end):
+        return PiecewiseFunction([0.0, 0.0], [Float(0.0)], independent_variable)
 
-        if not np.isfinite(segment_1_duration) or not np.isfinite(segment_2_duration):
-            return None
-
-    boundaries = [independent_variable_start]
-    for duration in [segment_1_duration, segment_2_duration, segment_3_duration]:
-        boundaries.append(boundaries[-1] + duration)
-
-    jerk_functions = np.array([Float(segment_1_jerk), Float(segment_2_jerk), Float(segment_3_jerk)])
-    piecewise_jerk_function = PiecewiseFunction(boundaries, jerk_functions, independent_variable)
-
-    validate_three_segment(independent_variable_start, v_start, v_end, a_cruise, j_max, piecewise_jerk_function)
+    segment_duration = np.sqrt(np.abs((v_end - v_start) / j_max))
+    j = np.sign(v_end - v_start) * j_max
+    piecewise_jerk_function = PiecewiseFunction([0.0, segment_duration, 2.0 * segment_duration], [Float(j), Float(-j)],
+                                                independent_variable)
+    if VALIDATION_ENABLED:
+        validate_acceleration_segments(0.0, v_start, v_end, a_max, j_max, piecewise_jerk_function)
     return piecewise_jerk_function
 
 
-def fit_three_segment(independent_variable_start, v_start, v_end, a_max, j_max, independent_variable,
-                      num_accelerations_to_try=16):
-    best_piecewise_jerk = None
-    candidate_cruise_accelerations = np.sign(v_end - v_start) * np.linspace(a_max / float(num_accelerations_to_try),
-                                                                            a_max, num_accelerations_to_try)
-    for a_cruise in candidate_cruise_accelerations:
-        piecewise_jerk = fit_three_segment_given_cruising_acceleration(independent_variable_start, v_start, v_end,
-                                                                       a_cruise, j_max,
-                                                                       independent_variable)
-        if piecewise_jerk is None:
-            # Higher cruising accelerations definitely aren't feasible, return the best trajectory we've found.
-            return best_piecewise_jerk
-        best_piecewise_jerk = piecewise_jerk
-    return best_piecewise_jerk
+def fit_acceleration_trapezoid(v_start, v_end, a_max, j_max, independent_variable):
+    assert (a_max >= 0.0)
+    assert (j_max >= 0.0)
+    if np.isclose(v_start, v_end):
+        return PiecewiseFunction([0.0, 0.0], [Float(0.0)], independent_variable)
+
+    j = np.sign(v_end - v_start) * j_max
+    a = np.sign(v_end - v_start) * a_max
+
+    ramp_duration = a_max / j_max
+    ramp_velocity_change = 0.5 * a * ramp_duration
+    segment_2_duration = np.abs(v_end - v_start - 2.0 * ramp_velocity_change) / a_max
+    piecewise_jerk_function = PiecewiseFunction(
+        np.cumsum([0.0, ramp_duration, segment_2_duration, ramp_duration]), [Float(j), Float(0.0), Float(-j)],
+        independent_variable)
+
+    if VALIDATION_ENABLED or True:
+        validate_acceleration_segments(0.0, v_start, v_end, a_max, j_max, piecewise_jerk_function)
+    return piecewise_jerk_function
+
+
+def fit_acceleration_segments(v_start, v_end, a_max, j_max, independent_variable):
+    """
+    3 segment trajectory segment with positive max jerk, 0 jerk, and negative max jerk segments. The
+    middle section may have zero duration if we can't reach max accleration. v_end is greater than v_start,
+    and the acceleration at the start and end is zero.
+    """
+    min_velocity_change_if_reach_a_max = j_max * (a_max / j_max) ** 2.0
+    if np.abs(min_velocity_change_if_reach_a_max) > np.abs(v_end - v_start):
+        return fit_acceleration_triangle(v_start, v_end, a_max, j_max, independent_variable)
+    else:
+        return fit_acceleration_trapezoid(v_start, v_end, a_max, j_max, independent_variable)
+
 
 def fit_given_cruising_velocity(p_start, p_end, v_start, v_end, v_cruise, a_max, j_max, independent_variable):
-    jerk_for_first_three_segments = fit_three_segment(0.0, v_start, v_cruise, a_max, j_max, independent_variable)
+    jerk_for_first_three_segments = fit_acceleration_segments(v_start, v_cruise, a_max, j_max, independent_variable)
     if jerk_for_first_three_segments is None:
         return None
 
-    jerk_for_last_three_segments = fit_three_segment(0.0, v_cruise, v_end, a_max, j_max,
-                                                     independent_variable)
+    jerk_for_last_three_segments = fit_acceleration_segments(v_cruise, v_end, a_max, j_max, independent_variable)
     if jerk_for_last_three_segments is None:
         return None
 
-    acceleration_for_first_three_segments = jerk_for_first_three_segments.integral(0.0)
-    velocity_for_first_three_segments = acceleration_for_first_three_segments.integral(v_start)
-    position_for_first_three_segments = velocity_for_first_three_segments.integral(p_start)
+    acceleration_for_first_three_segments = jerk_for_first_three_segments.integrate(0.0)
+    velocity_for_first_three_segments = acceleration_for_first_three_segments.integrate(v_start)
+    position_for_first_three_segments = velocity_for_first_three_segments.integrate(p_start)
     segments_123_distance_traveled = position_for_first_three_segments(
         position_for_first_three_segments.boundaries[-1]) - position_for_first_three_segments(
         position_for_first_three_segments.boundaries[0])
 
-    acceleration_for_last_three_segments = jerk_for_last_three_segments.integral(0.0)
-    velocity_for_last_three_segments = acceleration_for_last_three_segments.integral(v_cruise)
+    acceleration_for_last_three_segments = jerk_for_last_three_segments.integrate(0.0)
+    velocity_for_last_three_segments = acceleration_for_last_three_segments.integrate(v_cruise)
     # We're not yet sure what the start position will be - it will depend on how long we maintain our cruising
     # velocity. For now we set it to 0.0 just to figure out how far we move in the last three segements.
-    position_for_last_three_segments = velocity_for_last_three_segments.integral(0.0)
+    position_for_last_three_segments = velocity_for_last_three_segments.integrate(0.0)
     segments_567_distance_traveled = position_for_last_three_segments(
         position_for_last_three_segments.boundaries[-1]) - position_for_last_three_segments(
         position_for_last_three_segments.boundaries[0])

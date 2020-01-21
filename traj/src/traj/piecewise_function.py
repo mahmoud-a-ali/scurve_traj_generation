@@ -29,7 +29,7 @@ class PiecewiseFunction:
     def extend(self, other):
         # If the start of the other piecewise function isn't zero, there would be a gap in the middle of the
         # combined function that would have no defined values. We don't have any good way to handle that.
-        assert(other.boundaries[0] == 0.0)
+        assert (other.boundaries[0] == 0.0)
         self.boundaries = np.concatenate((self.boundaries[:-1], other.boundaries + self.boundaries[-1]))
         self.functions = np.concatenate((self.functions, other.functions))
 
@@ -39,7 +39,7 @@ class PiecewiseFunction:
         path_points = np.array([self(v) for v in independent_variable_values])
         return independent_variable_values, path_points
 
-    def integral(self, integration_constant):
+    def integrate(self, integration_constant):
         integrated_functions = [integration_constant + self.functions[0].integrate(self.independent_variable)]
         for function_i in range(1, len(self.functions)):
             start_value = integrated_functions[function_i - 1].subs(self.independent_variable,
