@@ -1,7 +1,7 @@
 from matplotlib import pyplot as plt
 import numpy as np
 
-joint_colors = ['r', 'b', 'g']
+joint_colors = ['r', 'b', 'g', 'c', 'm', 'y', 'k', 'w']
 
 """
 Plot a 1 dimensional trajectory. Plots position, velocity, acceleration, and jerk versus time
