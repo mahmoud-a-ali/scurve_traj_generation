@@ -9,8 +9,8 @@ in separate subplots.
 
 Uses the entire provided figure, adding subplots as needed.
 """
-def plot_trajectory(figure, position, velocity, acceleration, jerk, n_points=300, j_max=None,
-        a_max=None, v_max=None):
+def plot_trajectory(figure, position, velocity, acceleration, jerk, n_points=1000, j_max=None,
+        a_max=None, v_max=None, p_max=None):
     boundaries = jerk.boundaries
     plot_times = np.linspace(position.boundaries[0], position.boundaries[-1], n_points)
     positions = np.array([position(t) for t in plot_times])
@@ -31,6 +31,10 @@ def plot_trajectory(figure, position, velocity, acceleration, jerk, n_points=300
 
     axes[0].vlines(boundaries, positions.min(), positions.max(), color=(0.8, 0.8, 0.8))
 
+    if p_max is not None:
+        axes[0].plot(plot_times, [p_max] * len(plot_times), '--', color='red')
+        axes[0].plot(plot_times, [-p_max] * len(plot_times), '--', color='red')
+    
     if v_max is not None:
         axes[1].plot(plot_times, [v_max] * len(plot_times), '--', color='red')
         axes[1].plot(plot_times, [-v_max] * len(plot_times), '--', color='red')
