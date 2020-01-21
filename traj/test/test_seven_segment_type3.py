@@ -1,11 +1,15 @@
 import numpy as np
+from sympy import integrate, Symbol
 
 import traj
 
 
 def check_fit_seven_segment(p_start, p_end, v_max, a_max, j_max):
-    position, velocity, jerk, acceleration = traj.seven_segment_type3.fit(
-        p_start, p_end, v_max, a_max, j_max)
+    t = Symbol('t')
+    jerk = traj.seven_segment_type3.fit(p_start, p_end, v_max, a_max, j_max, t)
+    acceleration = jerk.integrate(0.0)
+    velocity = acceleration.integrate(0.0)
+    position = velocity.integrate(p_start)
 
     t_start = position.boundaries[0]
     t_end = position.boundaries[-1]

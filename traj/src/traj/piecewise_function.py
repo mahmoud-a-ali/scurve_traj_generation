@@ -12,7 +12,7 @@ class PiecewiseFunction:
 
     def __init__(self, boundaries, functions, independent_variable):
         self.boundaries = np.asarray(boundaries)
-        self.functions = np.asarray(functions)
+        self.functions = functions
         self.independent_variable = independent_variable
         assert len(boundaries) - 1 == len(functions)
 

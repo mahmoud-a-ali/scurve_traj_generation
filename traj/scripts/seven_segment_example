@@ -10,7 +10,7 @@ from sympy import Symbol
 
 import traj
 
-j_max = 0.1
+j_max = 10.0
 a_max = 2.0
 v_max = 10.0
 p_start = 0.0
@@ -20,16 +20,14 @@ v_end = 0.0
 
 t = Symbol('t')
 
-
-
 t_start = time.time()
-jerk = traj.seven_segment_type4.fit(p_start, p_end, v_start, v_end, v_max, a_max, j_max, t)
+jerk = traj.seven_segment_type4.fit(p_start, p_end, v_start, v_end, v_max, a_max, j_max, t, 8)
 print('Fit function in {} seconds'.format(time.time() - t_start))
 
 t_start = time.time()
-acceleration = jerk.integral(0.0)
-velocity = acceleration.integral(0.0)
-position = velocity.integral(p_start)
+acceleration = jerk.integrate(0.0)
+velocity = acceleration.integrate(v_start)
+position = velocity.integrate(p_start)
 print('Integrated function in {} seconds'.format(time.time() - t_start))
 
 t_start = time.time()

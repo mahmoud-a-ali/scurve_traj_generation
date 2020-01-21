@@ -123,7 +123,7 @@ def fit_acceleration_trapezoid(v_start, v_end, a_max, j_max, independent_variabl
         np.cumsum([0.0, ramp_duration, segment_2_duration, ramp_duration]), [Float(j), Float(0.0), Float(-j)],
         independent_variable)
 
-    if VALIDATION_ENABLED or True:
+    if VALIDATION_ENABLED:
         validate_acceleration_segments(0.0, v_start, v_end, a_max, j_max, piecewise_jerk_function)
     return piecewise_jerk_function
 
@@ -181,8 +181,8 @@ def fit_given_cruising_velocity(p_start, p_end, v_start, v_end, v_cruise, a_max,
     jerk.extend(jerk_for_last_three_segments)
 
     v_max = max(v_start, v_end, v_cruise)
-
-    validate(p_start, p_end, v_start, v_end, v_max, a_max, j_max, jerk, independent_variable)
+    if VALIDATION_ENABLED:
+        validate(p_start, p_end, v_start, v_end, v_max, a_max, j_max, jerk, independent_variable)
     return jerk
 
 
