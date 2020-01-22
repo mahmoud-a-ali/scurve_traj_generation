@@ -16,7 +16,7 @@ v_max = 10.0
 p_start = 0.0
 p_end = 30.0
 v_start = 0.0
-v_end = 0.0
+v_end = 1.5
 
 t = Symbol('t')
 
