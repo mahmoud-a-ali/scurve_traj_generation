@@ -1,22 +1,19 @@
 #!/usr/bin/env python
-
 import math
 
 #to find the real root/roots of a cubic equation
 def real_roots_cubic_eq ( a,  b,  c,  d):
-#    print "real_roots_cubic_eq: a, b, c, d= "
-#    print  a,  b, c, d
-    
+    # print "real_roots_cubic_eq, eq_info: a={} b={} c={} d={} ".format(a,  b, c, d)   
     rt1=0
     rt2=0
     rt3=0
     if (a == 0.0000000):
-#        print "The coefficient of the cube of x is 0. Please use the utility for a SECOND degree quadratic. No further action taken."
+        # print "The coefficient of the cube of x is 0. Please use the utility for a SECOND degree quadratic. No further action taken."
         rt1, rt2, n_rts = quad_eq_real_root ( b, c, d)
         return rt1, rt2, -100, n_rts
     
-    if ( abs(d) < 1e-10):
-#        print "One root is 0. Now divide through by x and use the utility for a SECOND degree quadratic to solve the resulting equation for the other two roots. No further action taken."
+    if ( abs(d) < 1e-20):
+        # print "One root is 0. Now divide through by x and use the utility for a SECOND degree quadratic to solve the resulting equation for the other two roots. No further action taken."
         rt1 = 0
         rt2, rt3, n_rts = quad_eq_real_root (a, b, c)
         return rt1, rt2, rt3, n_rts+1
@@ -24,34 +21,34 @@ def real_roots_cubic_eq ( a,  b,  c,  d):
     b /= a
     c /= a
     d /= a
-#    double disc, q, r, dum1, s, t, term1, r13;
+
     q = (3.0*c - (b*b))/9.0
     r = -(27.0*d) + b*(9.0*c - 2.0*(b*b))
     r /= 54.0
     disc = q*q*q + r*r
-#    print "disc= {}".format(disc)
+    # print "disc= {}".format(disc)
     term1 = (b/3.0)
     if (disc > 0.0): # one root real, two are complex
-#        print "disc > 0"
         s = r + math.sqrt(disc)
-#        s = ((s < 0) ? -pow(-s, (1.0/3.0)) : pow(s, (1.0/3.0)))
         if s<0:
-            s= -pow(-s, (1.0/3.0))
+            mins_s=-s
+            s=  - mins_s**(1.0/3.0) 
         else:
-            s= pow(s, (1.0/3.0))
-        t = r - math.sqrt(disc)
-#        t = ((t < 0) ? -pow(-t, (1.0/3.0)) : pow(t, (1.0/3.0)))
+            s= s**(1.0/3.0)
+            
+        t = r - math.sqrt(disc)  
         if t<0:
-            t= -pow(-t, (1.0/3.0))
+            mins_t=-t
+            t=  - mins_t**(1.0/3.0) 
         else:
-            t= pow(t, (1.0/3.0))
+            t= t**(1.0/3.0)
+            
         x1r= -term1 + s + t
         term1 += (s + t)/2.0
         x3r = -term1
         x2r = -term1
         term1 = math.sqrt(3.0)*(-t + s)/2
         x2r = term1
-        x3i = -term1
         rt1 = x1r
         rt2 = -100.0
         rt3 = -100.0
@@ -59,17 +56,13 @@ def real_roots_cubic_eq ( a,  b,  c,  d):
         # End if (disc > 0)
     
     #The remaining options are all real
-    x3i =0
-    x2r = 0
     if disc==0.000 : # All roots real, at least two are equal.
-#        print "disc = 0 , disc= " 
-#        print  disc
-        disc=0
-#        r13 = ((r < 0) ? -pow(-r,(1.0/3.0)) : pow(r,(1.0/3.0)))
+        disc=0   
         if r<0:
-            r13= -pow(-r, (1.0/3.0))
+            mins_r=-r
+            r13=  - mins_r**(1.0/3.0) 
         else:
-            r13= pow(r, (1.0/3.0))
+            r13= r**(1.0/3.0)
             
         x1r= -term1 + 2.0*r13
         x3r = -(r13 + term1)
@@ -81,8 +74,8 @@ def real_roots_cubic_eq ( a,  b,  c,  d):
         #End if (disc == 0)
     
     #Only option left is that all roots are real and unequal (to get here, q < 0)
-#    print "last case: disc < 0 , disc= "
-#    print disc
+    # print "last case: disc < 0 , disc= "
+    # print disc
     else:
         q = -q
         dum1 = q*q*q
@@ -103,7 +96,6 @@ def real_roots_cubic_eq ( a,  b,  c,  d):
 
 def quad_eq_real_root (a, b, c):
     disc= b*b - 4*a*c
-#    print "disc = {}".format(disc)
     if(a==0.000000):
         if(b==0.000000):
             rt1= 0
@@ -161,28 +153,6 @@ def min_positive_root3( r1,  r2,  r3):
     elif (r3>=0 ):
         min_rt= r3
     return min_rt
-
-
-
-##### test
-#a=1.2      
-#b=2.3  
-#c=3.4   
-#d=4.5
-##
-#a=2.0 
-#b=0.0 
-#c=0.00099025765642 
-#d=-2.44788172224e-05
-#rt1, rt2, rt3, n_rts = real_roots_cubic_eq ( a,  b,  c,  d)
-#print "rt1, rt2, rt3, n_rts: "
-#print rt1, rt2, rt3, n_rts
-
-
-#rt1, rt2, n_rts = quad_eq_real_root ( a,  b,  c)
-#print "rt1, rt2, n_rts: "
-#print rt1, rt2,  n_rts
-
 
 
 
