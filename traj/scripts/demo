@@ -13,21 +13,28 @@ from sensor_msgs.msg import JointState
 import traj
 
 
-def create_joint_trajectory_goal(piecewise_position_function, piecewise_velocity_function,
-                                 piecewise_acceleration_function, joint_names, sample_period=0.008):
+def create_joint_trajectory_goal(piecewise_position_function, joint_names, sample_period=0.008):
     # Non-zero start times won't make sense to the controller
     assert piecewise_position_function.boundaries[0] == 0.0
     goal = FollowJointTrajectoryGoal()
-    goal.trajectory.header.stamp = rospy.Time.now()
-    goal.trajectory.header.frame_id = 'base_link'
+    goal.trajectory.header.stamp = rospy.Time(0)
+    goal.trajectory.header.frame_id = ''
     goal.trajectory.joint_names = joint_names
+
+    # The joint_trajectory_controller can cut off the first point. To make sure everything is nice and smooth,
+    # we copy the initial point several times.
+    initial_position = list(piecewise_position_function(0.0))
+    for dwell_point_i in range(250):
+        point = JointTrajectoryPoint()
+        point.time_from_start = rospy.Duration(dwell_point_i * sample_period)
+        point.positions = initial_position
+        goal.trajectory.points.append(point)
+    dwell_time = (dwell_point_i + 1) * sample_period
 
     for t in np.arange(0.0, piecewise_position_function.boundaries[-1], sample_period):
         point = JointTrajectoryPoint()
-        point.time_from_start = rospy.Duration(t)
+        point.time_from_start = rospy.Duration(t + dwell_time)
         point.positions = list(piecewise_position_function(t))
-        # point.velocities = list(piecewise_velocity_function(t))
-        # point.accelerations = list(piecewise_acceleration_function(t))
         goal.trajectory.points.append(point)
     return goal
 
@@ -66,9 +73,7 @@ max_jerks = np.deg2rad(np.array([
     8000.0,
     8000.0,
     16000.0,
-]))
-
-joint_names = ['joint_1', 'joint_2', 'joint_3', 'joint_4', 'joint_5', 'joint_6']
+])) * 0.2
 
 rospy.init_node('traj_demo')
 follow_trajectory_client = actionlib.SimpleActionClient('joint_trajectory_action', FollowJointTrajectoryAction)
@@ -76,6 +81,9 @@ follow_trajectory_client.wait_for_server()
 rospy.loginfo('Connected to joint trajectory server')
 
 plot_trajectory = rospy.get_param('~plot', False)
+joint_prefix = rospy.get_param('~joint_prefix', '')
+
+joint_names = [joint_prefix + name for name in 'joint_1', 'joint_2', 'joint_3', 'joint_4', 'joint_5', 'joint_6']
 
 joint_states_sub = rospy.Subscriber('joint_states', JointState, joint_state_callback)
 while not rospy.is_shutdown() and initial_joint_states is None:
@@ -88,12 +96,9 @@ path = np.array([initial_joint_states, (1.5, 0.7, 0.3, 0.0, -0.3, 0.0), initial_
                  (-1.5, 0.7, 0.3, 0.0, -0.3, 0.0), initial_joint_states])
 
 (trajectory_position_function, trajectory_velocity_function, trajectory_acceleration_function,
- trajectory_jerk_function) = traj.trajectory_for_path(path, max_velocities,
-                                                      max_accelerations,
-                                                      max_jerks)
+ trajectory_jerk_function) = traj.trajectory_for_path(path, max_velocities, max_accelerations, max_jerks)
 
-goal = create_joint_trajectory_goal(trajectory_position_function, trajectory_velocity_function,
-                                    trajectory_acceleration_function, joint_names, sample_period=0.008)
+goal = create_joint_trajectory_goal(trajectory_position_function, joint_names, sample_period=0.008)
 
 follow_trajectory_client.send_goal(goal)
 follow_trajectory_client.wait_for_result()
@@ -106,5 +111,4 @@ if plot_trajectory:
     traj.plot.plot_2d_path(plt.gca(), trajectory_position_function, 100, label='trajectory points')
     # Plot the waypoints in the original path for comparison.
     plt.plot([q[0] for q in path], [q[1] for q in path], 'bx', label='original waypoints')
-
     plt.show()

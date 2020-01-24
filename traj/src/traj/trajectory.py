@@ -29,7 +29,6 @@ def trajectory_for_path(path, max_velocities, max_accelerations, max_jerks):
 
         p_start = np.array(fsegment.subs(s, 0.0)).astype(np.float64).flatten()
         p_end = np.array(fsegment.subs(s, s1 - s0)).astype(np.float64).flatten()
-        print(p_start, p_end)
 
         # Project joint limits onto this segment's direction to get limits on s
         v_max = project_limits_onto_s(max_velocities, fsegment)
