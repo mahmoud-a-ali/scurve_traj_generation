@@ -14,9 +14,8 @@ def check_fit_traj_segment(p_start, p_end, v_start, v_end, p_max, v_max, a_max, 
     p_end_computed = position(t_end)[0]
     v_end_computed = velocity(t_end)[0]
     
-    print p_start_computed, p_end_computed, v_start_computed, v_end_computed
-    print " ", p_start, p_end, v_start, v_end
-    
+    #print p_start_computed, p_end_computed, v_start_computed, v_end_computed
+    #print " ", p_start, p_end, v_start, v_end
     
     assert np.isclose(p_start, p_start_computed)
     assert np.isclose(p_end, p_end_computed)    

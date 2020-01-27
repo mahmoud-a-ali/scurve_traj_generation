@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 import math
+'''
+these function were implemented to find the minimum real root a cubic equation, 
+'''
 
-#to find the real root/roots of a cubic equation
 def real_roots_cubic_eq ( a,  b,  c,  d):
     # print "real_roots_cubic_eq, eq_info: a={} b={} c={} d={} ".format(a,  b, c, d)   
     rt1=0

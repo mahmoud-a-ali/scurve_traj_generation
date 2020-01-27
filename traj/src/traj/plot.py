@@ -6,10 +6,9 @@ joint_colors = ['r', 'b', 'g', 'c', 'm', 'y', 'k', 'w']
 """
 Plot a 1 dimensional trajectory. Plots position, velocity, acceleration, and jerk versus time
 in separate subplots.
-
 Uses the entire provided figure, adding subplots as needed.
 """
-def plot_trajectory(figure, position, velocity, acceleration, jerk, n_points=1000, j_max=None,
+def plot_trajectory(figure, position, velocity, acceleration, jerk, n_points=300, j_max=None,
         a_max=None, v_max=None, p_max=None):
     boundaries = jerk.boundaries
     plot_times = np.linspace(position.boundaries[0], position.boundaries[-1], n_points)
@@ -34,7 +33,7 @@ def plot_trajectory(figure, position, velocity, acceleration, jerk, n_points=100
     if p_max is not None:
         axes[0].plot(plot_times, [p_max] * len(plot_times), '--', color='red')
         axes[0].plot(plot_times, [-p_max] * len(plot_times), '--', color='red')
-    
+
     if v_max is not None:
         axes[1].plot(plot_times, [v_max] * len(plot_times), '--', color='red')
         axes[1].plot(plot_times, [-v_max] * len(plot_times), '--', color='red')
