@@ -63,9 +63,9 @@ for i in range (0, 20):
 
 
 
-plt.title("execution time for non_zero segment fitting")
+plt.title("time_to_fit_non_zero_segment_with_integration_part")
 plt.xlabel('case number')
-plt.ylabel('time')
+plt.ylabel('time-sec')
 plt.show()
 
 
