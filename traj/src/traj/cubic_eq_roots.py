@@ -123,37 +123,41 @@ def quad_eq_real_root (a, b, c):
 
 def min_positive_root2( r1,  r2):
     min_rt = -1
-    if (r1>=0 and r2>=0 ):
+    if (r1>0 and r2>0 ):
         if r1<r2:
             min_rt=r1
         else:
             min_rt=r2
-    elif (r1>=0 ):
+    elif (r1>0 ):
         min_rt= r1
-    elif (r2>=0 ):
+    elif (r2>0 ):
         min_rt= r2
+    else:
+        raise ValueError("there is no real positive roots!" ) 
     return min_rt
 
 
 def min_positive_root3( r1,  r2,  r3):
     min_rt=-1
-    if (r1>=0 and r2>=0 and r3>=0):
+    if (r1>0 and r2>0 and r3>0):
         if r1<r2:
             min_rt=min_positive_root2( r1,  r3)
         else:
             min_rt=min_positive_root2( r2,  r3)
-    elif (r1>=0 and r2>=0):
+    elif (r1>0 and r2>0):
         min_rt=min_positive_root2( r1,  r2)
-    elif (r1>=0 and r3>=0):
+    elif (r1>0 and r3>0):
         min_rt=min_positive_root2( r1,  r3)
-    elif (r2>=0 and r3>=0):
+    elif (r2>0 and r3>0):
         min_rt=min_positive_root2( r2,  r3)
-    elif (r1>=0):
+    elif (r1>0):
         min_rt= r1
-    elif (r2>=0):
+    elif (r2>0):
         min_rt= r2
-    elif (r3>=0 ):
+    elif (r3>0 ):
         min_rt= r3
+    else:
+        raise ValueError("there is no real positive roots!" ) 
     return min_rt
 
 

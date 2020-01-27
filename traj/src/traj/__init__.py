@@ -10,3 +10,7 @@ from segment_planning import traj_segment_planning
 from segment_planning import calculate_minPos_reachAcc_maxJrkTime_maxAccTime_to_final_vel
 
 from plot_traj_segment import plot_traj_segment
+from cubic_eq_roots import real_roots_cubic_eq
+from cubic_eq_roots import quad_eq_real_root
+from cubic_eq_roots import min_positive_root2
+from cubic_eq_roots import min_positive_root3
