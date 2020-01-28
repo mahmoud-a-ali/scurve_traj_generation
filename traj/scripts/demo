@@ -39,13 +39,6 @@ def create_joint_trajectory_goal(piecewise_position_function, joint_names, sampl
     return goal
 
 
-def joint_state_callback(joint_state_msg):
-    global initial_joint_states
-    initial_joint_states = joint_state_msg.position
-
-
-initial_joint_states = None
-
 # Joint limits for a fictional 6DoF arm.
 
 max_velocities = np.deg2rad(np.array([
@@ -83,13 +76,10 @@ rospy.loginfo('Connected to joint trajectory server')
 plot_trajectory = rospy.get_param('~plot', False)
 joint_prefix = rospy.get_param('~joint_prefix', '')
 
-joint_names = [joint_prefix + name for name in 'joint_1', 'joint_2', 'joint_3', 'joint_4', 'joint_5', 'joint_6']
+joint_names = [joint_prefix + name for name in ['joint_1', 'joint_2', 'joint_3', 'joint_4', 'joint_5', 'joint_6']]
 
-joint_states_sub = rospy.Subscriber('joint_states', JointState, joint_state_callback)
-while not rospy.is_shutdown() and initial_joint_states is None:
-    rospy.sleep(0.1)
-rospy.loginfo('Received a joint state message')
-start_values = initial_joint_states
+initial_joint_states = rospy.wait_for_message('/joint_states', JointState).position
+rospy.loginfo('Set initial values based on current joint states')
 
 # Simple path
 path = np.array([initial_joint_states, (1.5, 0.7, 0.3, 0.0, -0.3, 0.0), initial_joint_states,
