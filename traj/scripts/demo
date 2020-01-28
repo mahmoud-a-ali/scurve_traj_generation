@@ -73,7 +73,7 @@ max_jerks = np.deg2rad(np.array([
     8000.0,
     8000.0,
     16000.0,
-])) * 0.2
+])) * 1.0
 
 rospy.init_node('traj_demo')
 follow_trajectory_client = actionlib.SimpleActionClient('joint_trajectory_action', FollowJointTrajectoryAction)

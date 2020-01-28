@@ -19,7 +19,9 @@ def compute_discrete_derivatives(positions, itp=0.008):
     return np.array(velocities), np.array(accelerations), np.array(jerks)
 
 
-def plot_discrete_trajectory(axes, times, positions, velocities, accelerations, jerks, label, color='b', marker=''):
+def plot_discrete_trajectory(axes, times, positions, velocities, accelerations, jerks, label, linewidth=1, color='b',
+                             style='-',
+                             marker=''):
     num_joints = positions.shape[1]
     axes[0, 0].set_ylabel('position')
     axes[1, 0].set_ylabel('velocity')
@@ -27,10 +29,13 @@ def plot_discrete_trajectory(axes, times, positions, velocities, accelerations, 
     axes[3, 0].set_ylabel('jerk')
     for joint_i in range(num_joints):
         c = joint_colors[joint_i]
-        axes[0, joint_i].plot(times, positions[:, joint_i], c=color, marker=marker, label=label)
-        axes[1, joint_i].plot(times, velocities[:, joint_i], c=color, marker=marker, label=label)
-        axes[2, joint_i].plot(times, accelerations[:, joint_i], c=color, marker=marker, label=label)
-        axes[3, joint_i].plot(times, jerks[:, joint_i], c=color, marker=marker, label=label)
+        axes[0, joint_i].plot(times, positions[:, joint_i], style, c=color, marker=marker, linewidth=linewidth,
+                              label=label)
+        axes[1, joint_i].plot(times, velocities[:, joint_i], style, c=color, marker=marker, linewidth=linewidth,
+                              label=label)
+        axes[2, joint_i].plot(times, accelerations[:, joint_i], style, c=color, marker=marker, linewidth=linewidth,
+                              label=label)
+        axes[3, joint_i].plot(times, jerks[:, joint_i], style, c=color, marker=marker, linewidth=linewidth, label=label)
         axes[3, joint_i].set_xlabel('joint_{}'.format(joint_i + 1))
 
 
@@ -55,6 +60,7 @@ for topic, msg, t in bag.read_messages():
         command_positions.append(np.deg2rad(msg.axes_data[:args.njoints]))
     elif msg._type == 'control_msgs/FollowJointTrajectoryActionGoal':
         goal_msg = msg.goal
+        goal_time = t.to_sec()
     elif msg._type == 'fanuc_j519_msgs/RobotState':
         state_times.append(msg.header.stamp.to_sec())
         state_positions.append(np.deg2rad(msg.joint_pose[:args.njoints]))
@@ -66,31 +72,37 @@ command_positions = np.array(command_positions)
 state_times = np.array(state_times)
 state_positions = np.array(state_positions)
 goal_times = (np.array(
-    [p.time_from_start.to_sec() for p in goal_msg.trajectory.points]) + goal_msg.trajectory.header.stamp.to_sec())
+    [p.time_from_start.to_sec() for p in goal_msg.trajectory.points]) + goal_time)
 goal_positions = np.array([p.positions for p in goal_msg.trajectory.points])
 
 # Subtracting off the start time so we have "time since beginning of data" instead of "time since 1970".
 start_time = command_times[0]
 command_times -= start_time
 state_times -= start_time
+goal_times -= start_time
 
 # Add manual time offset to goal points to line it up with the controller data.
 goal_times += args.goal_start
 
-command_velocities, command_accelerations, command_jerks = compute_discrete_derivatives(command_positions, args.period)
+
 figure = plt.gcf()
 figure.suptitle('Driver command and state')
 axes = figure.subplots(4, args.njoints, squeeze=False, sharex=True, sharey='row')
+
+goal_velocities, goal_accelerations, goal_jerks = compute_discrete_derivatives(goal_positions, args.period)
+plot_discrete_trajectory(axes, goal_times, goal_positions, goal_velocities, goal_accelerations, goal_jerks,
+                         'Goal', style='-',
+                         color='0.75', linewidth=4)
+
+command_velocities, command_accelerations, command_jerks = compute_discrete_derivatives(command_positions, args.period)
 plot_discrete_trajectory(axes, command_times, command_positions, command_velocities, command_accelerations,
-                         command_jerks, 'Command', color='b')
+                         command_jerks, 'Command', style=':', color='0.0', linewidth=2)
 
 state_velocities, state_accelerations, state_jerks = compute_discrete_derivatives(state_positions, args.period)
 plot_discrete_trajectory(axes, state_times, state_positions, state_velocities, state_accelerations, state_jerks,
-                         'State', color='r')
+                         'State', style='--', color='0.0', linewidth=2)
 
-goal_velocities, goal_accelerations, goal_jerks = compute_discrete_derivatives(goal_positions, args.period)
-plot_discrete_trajectory(axes, goal_times, goal_positions, goal_velocities, goal_accelerations, goal_jerks, 'Goal',
-                         color='g')
+
 
 figure.legend()
 plt.show()
