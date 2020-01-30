@@ -24,7 +24,7 @@ def create_joint_trajectory_goal(piecewise_position_function, joint_names, sampl
     # The joint_trajectory_controller can cut off the first point. To make sure everything is nice and smooth,
     # we copy the initial point several times.
     initial_position = list(piecewise_position_function(0.0))
-    for dwell_point_i in range(250):
+    for dwell_point_i in range(10):
         point = JointTrajectoryPoint()
         point.time_from_start = rospy.Duration(dwell_point_i * sample_period)
         point.positions = initial_position
@@ -66,7 +66,7 @@ max_jerks = np.deg2rad(np.array([
     8000.0,
     8000.0,
     16000.0,
-])) * 1.0
+]))
 
 rospy.init_node('traj_demo')
 follow_trajectory_client = actionlib.SimpleActionClient('joint_trajectory_action', FollowJointTrajectoryAction)
