@@ -197,7 +197,8 @@ def fit_traj_segment(p_start, p_end, v_start, v_end, p_max, v_max, a_max, j_max,
     
    
     ### one option to retun segment_jerks_and_durations and send it to JTC and then use it for interpolation on the JTC side
-    #return segment_jerks_and_durations
+    # jsut to test max reachable vel script, retun only thesegment_jerks_and_durations     
+    return segment_jerks_and_durations
    
    
    ######################## Step_3:  generate pos, vel, acc, jrk using the calculated "segment_jerks_and_durations" ##########################         
