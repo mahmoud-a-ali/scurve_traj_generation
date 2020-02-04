@@ -278,8 +278,8 @@ def traj_segment_planning(p_start, p_end, abs_v_start, abs_v_end, abs_max_vel, a
           
     #calculate min_pos required to reach vf from v0   
     abs_minPos_to_vf, acc_to_vf, t_jrk_to_vf, t_acc_to_vf = calculate_minPos_reachAcc_maxJrkTime_maxAccTime_to_final_vel(abs_v_start, abs_v_end, abs_max_vel, abs_max_acc, abs_max_jrk)
-    if abs_minPos_to_vf > abs(p_end-p_start): # if abs_minPos_to_vf> abs(p_end-p_start), then these values are not feasible
-        print">>> min required position difference to reach v_end from v_start > abs(p_end-p_start) "
+    if abs_minPos_to_vf > abs(p_end-p_start) and  abs_minPos_to_vf - abs(p_end-p_start) > 1e-5: # if abs_minPos_to_vf> abs(p_end-p_start), then these values are not feasible
+        print">>> min required position difference to reach v_end from v_start= {} > abs(p_end-p_start)={} ".format(abs_minPos_to_vf, abs(p_end-p_start) )       
         raise ValueError("non feasible case: violate min_pos_to_vf" )      
         return 0, 0, 0, 0, 0
     
