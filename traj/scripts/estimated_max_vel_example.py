@@ -58,7 +58,7 @@ plt.plot(waypts, backward_max_vel,  'r', label='backwar_vel')
 plt.xlabel("waypoints")
 plt.ylabel("velocity")
 plt.legend()
-#plt.show()
+plt.show()
 
 
 # calcuate max_rechable_vel that grantee grantee v_end at the end of the trajectory
@@ -70,7 +70,7 @@ plt.legend(" estimated_max_vel ")
 plt.xlabel("waypts")
 plt.ylabel("velocity")
 plt.legend()
-#plt.show()
+plt.show()
 
 
 
@@ -111,7 +111,6 @@ for seg in range(0, n_segs):
 
 fig, axes = plt.subplots(4, sharex=True)
 axes[0].plot( Tim, POS)
-axes[0].set_xlabel('Time')
 axes[0].set_ylabel('position')
 axes[1].plot( Tim, VEL)
 axes[1].set_ylabel('velocity')
@@ -119,6 +118,8 @@ axes[2].plot( Tim, ACC)
 axes[2].set_ylabel('acceleration')
 axes[3].plot( Tim, JRK)
 axes[3].set_ylabel('jerk')
+axes[3].set_xlabel('Time')
+
 plt.legend()
 plt.show()
 
