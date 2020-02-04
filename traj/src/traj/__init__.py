@@ -1,7 +1,9 @@
 from parameterize_path import parameterize_path
 from piecewise_function import PiecewiseFunction
+
 import seven_segment_type3
 import seven_segment_type4
+
 import plot
 from trajectory import trajectory_for_path
 
@@ -14,3 +16,7 @@ from cubic_eq_roots import real_roots_cubic_eq
 from cubic_eq_roots import quad_eq_real_root
 from cubic_eq_roots import min_positive_root2
 from cubic_eq_roots import min_positive_root3
+
+from max_reachable_vel import max_reachable_vel
+from param_max_reachable_vel import max_reachable_vel_per_segment
+from sample_segment import sample_segment
