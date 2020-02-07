@@ -53,12 +53,12 @@ def plot_trajectory(figure, position, velocity, acceleration, jerk, n_points=300
 """
 Plot the positions for a 2 dimensional path on the provided matplotlib axes.
 """
-def plot_2d_path(axes, piecewise_function, npoints, label='path points'):
+def plot_2d_path(axes, piecewise_function, npoints, linewidth=1.0, label='path points'):
     """
     Plot a 2d path that is represented as a piecewise function of a single variable.
     """
     S, path_points = piecewise_function.sample(npoints)
-    axes.plot(path_points[:,0], path_points[:,1], 'r.-', label=label)
+    axes.plot(path_points[:,0], path_points[:,1], 'r.-', linewidth=linewidth, label=label)
     axes.set_title('Joint space path')
     axes.set_xlabel('Joint 1')
     axes.set_ylabel('Joint 2')

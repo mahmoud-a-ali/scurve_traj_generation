@@ -2,6 +2,34 @@ from sympy import Matrix, Piecewise, Symbol
 
 from piecewise_function import PiecewiseFunction
 
+
+def blend_ratio(s):
+    """
+    Carefully chosen polynomial such that:
+      blend_ratio(0.0) is 0.0
+      blend_ration(1.0) is 1.0)
+      derivative of blend_ratio w.r.t s at s=0.0 is 0.0
+      derivative of blend_ratio w.r.t. s at s=1.0 is 0.0
+    """
+    return 6. * (s ** 5) - 15 * (s ** 4) + 10 * (s ** 3)
+
+
+def corrected_blend_ratio(s, s0, s1):
+    """
+    The blend_ratio() polynomial assumes that s is between 0.0 and 1.0. Here we scale s to fit those assumptions.
+
+    Args:
+        s - value of s for which we want to evaluate the blend ratio
+        s0 - value of s at the beginning of the blended segment.
+        s1 - value of s at the end of the blended segment.
+    """
+    return blend_ratio((s - s0) / (s1 - s0))
+
+
+def create_blended_segment(segment1_function, segment2_function, blend_radius):
+    pass
+
+
 def parameterize_path(path):
     """
     Represent the given joint-space path as a function q = f(s).
@@ -10,7 +38,7 @@ def parameterize_path(path):
     parameterization such that it has a few important properties:
 
     1. s = 0 is the start point of the path in joint space.
-    2. As s increases, we move along the path monononically.
+    2. As s increases, we move along the path monotonically.
     3. The length of path traversed for a given increase in s is constant.
 
     Out of convenience, we choose a parameterization such that the value of s is equal
@@ -23,7 +51,7 @@ def parameterize_path(path):
     s = Symbol('s')
     boundaries = [0.0]
     functions = []
-    # q0 and q1 are succesive joint space posions in the path. "boundaries" are the values of the
+    # q0 and q1 are successive joint space positions in the path. "boundaries" are the values of the
     # independent variable (often time) at which we switch from one function to the next in our
     # piecewise representation.
     for q0, q1 in zip(path[:-1], path[1:]):
@@ -37,3 +65,38 @@ def parameterize_path(path):
         functions.append(q0 + direction * s)
     return PiecewiseFunction(boundaries, functions, s)
 
+
+def blend_parameterized_path(piecewise_position_function, blend_radius):
+    """
+    blend_radius is in same units as the independent variable of the piecewise position function "s". In the
+    un-blended path we start with, these units are equal to the distance in joint space.
+    """
+    boundaries = piecewise_position_function.boundaries
+    functions = piecewise_position_function.functions
+    assert len(boundaries) == len(functions) + 1
+    blended_boundaries = [0.0]
+    blended_functions = []
+    for segment_i in range(len(functions)):
+        if segment_i == 0:
+            s_start = 0.0
+            s_end = boundaries[segment_i + 1] - blend_radius
+        elif segment_i == len(functions) - 1:
+            s_start = boundaries[segment_i] + blend_radius
+            s_end = boundaries[segment_i + 1]
+        else:
+            s_start = boundaries[segment_i] + blend_radius
+            s_end = boundaries[segment_i + 1] - blend_radius
+
+        if s_end < s_start:
+            segment_length = boundaries[segment_i+1] - boundaries[segment_i]
+            raise RuntimeError('Segment {} has length {} which is less than 2*blend_radius', segment_i, segment_length)
+
+        blended_boundaries.append(s_end)
+        blended_functions.append(functions[segment_i])
+
+        # TODO: Add the blend portion
+
+        blended_boundaries.append(boundaries[segment_i+1] + blend_radius)
+        blended_functions.append(functions[segment_i])
+
+    return PiecewiseFunction(blended_boundaries, blended_functions, piecewise_position_function.independent_variable)
