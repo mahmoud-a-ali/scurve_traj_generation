@@ -1,4 +1,4 @@
-from sympy import Matrix, Piecewise, Symbol
+from sympy import Float, Matrix, Piecewise, Symbol
 
 from piecewise_function import PiecewiseFunction
 
@@ -71,32 +71,37 @@ def blend_parameterized_path(piecewise_position_function, blend_radius):
     blend_radius is in same units as the independent variable of the piecewise position function "s". In the
     un-blended path we start with, these units are equal to the distance in joint space.
     """
+    s = piecewise_position_function.independent_variable
+
     boundaries = piecewise_position_function.boundaries
     functions = piecewise_position_function.functions
     assert len(boundaries) == len(functions) + 1
     blended_boundaries = [0.0]
     blended_functions = []
     for segment_i in range(len(functions)):
+        original_segment_length = boundaries[segment_i + 1] - boundaries[segment_i]
+        # Relative to start of the original segment
         if segment_i == 0:
             s_start = 0.0
-            s_end = boundaries[segment_i + 1] - blend_radius
+            s_end = original_segment_length - blend_radius
         elif segment_i == len(functions) - 1:
-            s_start = boundaries[segment_i] + blend_radius
-            s_end = boundaries[segment_i + 1]
+            s_start = blend_radius
+            s_end = original_segment_length
         else:
-            s_start = boundaries[segment_i] + blend_radius
-            s_end = boundaries[segment_i + 1] - blend_radius
+            s_start = blend_radius
+            s_end = original_segment_length - blend_radius
 
-        if s_end < s_start:
-            segment_length = boundaries[segment_i+1] - boundaries[segment_i]
+        segment_length = s_end - s_start
+        if segment_length < 0.0:
+            segment_length = boundaries[segment_i + 1] - boundaries[segment_i]
             raise RuntimeError('Segment {} has length {} which is less than 2*blend_radius', segment_i, segment_length)
 
-        blended_boundaries.append(s_end)
-        blended_functions.append(functions[segment_i])
+        blended_boundaries.append(blended_boundaries[-1] + segment_length)
+        blended_functions.append(functions[segment_i].subs(s, s + s_start))
 
         # TODO: Add the blend portion
 
-        blended_boundaries.append(boundaries[segment_i+1] + blend_radius)
-        blended_functions.append(functions[segment_i])
+        blended_boundaries.append(blended_boundaries[-1] + blend_radius * 2.0)
+        blended_functions.append(Matrix([Float(0.0), Float(0.0)]))
 
-    return PiecewiseFunction(blended_boundaries, blended_functions, piecewise_position_function.independent_variable)
+    return PiecewiseFunction(blended_boundaries, blended_functions, s)
