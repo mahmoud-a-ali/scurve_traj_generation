@@ -26,8 +26,9 @@ def corrected_blend_ratio(s, s0, s1):
     return blend_ratio((s - s0) / (s1 - s0))
 
 
-def create_blended_segment(segment1_function, segment2_function, blend_radius):
-    pass
+def create_blended_segment(segment1_function, segment2_function, blend_radius, s):
+    segment_blend_ratio = corrected_blend_ratio(s, 0.0, blend_radius * 2.0)
+    return segment1_function + segment_blend_ratio * (segment2_function - segment1_function)
 
 
 def parameterize_path(path):
@@ -70,6 +71,11 @@ def blend_parameterized_path(piecewise_position_function, blend_radius):
     """
     blend_radius is in same units as the independent variable of the piecewise position function "s". In the
     un-blended path we start with, these units are equal to the distance in joint space.
+
+    Follows the approach of
+
+    https://github.com/PilzDE/pilz_industrial_motion/blob/melodic-devel/pilz_trajectory_generation/doc/MotionBlendAlgorithmDescription.pdf
+
     """
     s = piecewise_position_function.independent_variable
 
@@ -99,9 +105,19 @@ def blend_parameterized_path(piecewise_position_function, blend_radius):
         blended_boundaries.append(blended_boundaries[-1] + segment_length)
         blended_functions.append(functions[segment_i].subs(s, s + s_start))
 
-        # TODO: Add the blend portion
+        # All but the last segment have blends leading into the following segment.
+        if segment_i < len(functions) - 1:
+            blended_boundaries.append(blended_boundaries[-1] + blend_radius * 2.0)
+            blended_functions.append(None)
 
-        blended_boundaries.append(blended_boundaries[-1] + blend_radius * 2.0)
-        blended_functions.append(Matrix([Float(0.0), Float(0.0)]))
+    # Go back and fill in all the blending functions.
+    for blended_segment_i in range(len(blended_functions)):
+        if blended_functions[blended_segment_i] is None:
+            previous_segment_length = blended_boundaries[blended_segment_i] - blended_boundaries[blended_segment_i - 1]
+            blended_functions[blended_segment_i] = create_blended_segment(
+                blended_functions[blended_segment_i - 1].subs(s, s + previous_segment_length),
+                #blended_functions[blended_segment_i - 1].subs(s, s + previous_segment_length),
+                 blended_functions[blended_segment_i + 1].subs(s, s - 2.0 * blend_radius),
+                blend_radius, s)
 
     return PiecewiseFunction(blended_boundaries, blended_functions, s)
