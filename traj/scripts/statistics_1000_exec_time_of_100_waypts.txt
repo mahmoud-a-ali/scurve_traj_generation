@@ -1,0 +1,16 @@
+>> n_segs= 99 segment, n_exec =1000 
+
+####### average per segment: 
+>> average time to calculate max_vel per segment =  0.00505729516347 msec
+>> average time to fit non-zero segment          =  0.00708978344696 msec 
+
+####### average per 99 segment: 
+>> average     time to calculate max_vel per 99 seg  =  1.05214214325 msec 
+>> predictable time to calculate max_vel for 100 segs =  1.00134444237 msec 
+
+>> average     time to fit 99 non-zero segment       =  0.717277050018 msec 
+>> predictable time to fit 100 non-zero segment       =  0.701888561249 msec 
+
+>> avgerage    time to parameterize (find max_vel and time) for 99 segs =  1.76973438263 msec 
+>> predicatble time to parameterize (find max_vel and time) for 99 segs =  1.70323300362 msec 
+

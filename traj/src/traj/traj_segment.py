@@ -32,24 +32,24 @@ def assign_jerk_sign_According_to_motion_type(p_start, p_end, v_start, v_end, p_
          j_max = math.copysign(j_max, (p_end-p_start) ) 
          
     else:# v_end != v_start:
-        if v_start*v_end < 0: #won't be need it in complex motion case 
+        if v_start*v_end < 0.0: #won't be needed, it is a complex motion case 
             rospy.logdebug("this a complex motion, stop point will be calculated to join the +ve/-ve motion part " )          
         elif abs_v_start < abs_v_end : #acc motion
             if(v_start >= 0 and v_end >= 0): # positive motion
                 j_max_to_vf = j_max #math.copysign(j_max, v_end)
-                j_max = math.copysign(j_max, v_end)
+                j_max = j_max #math.copysign(j_max, v_end)
 
             elif (v_start <= 0 and v_end <= 0): # negative motion
                 j_max_to_vf = -j_max #math.copysign(j_max, v_end)
-                j_max = math.copysign(j_max, v_end)    
+                j_max = -j_max #math.copysign(j_max, v_end)    
                 
-        else:# v_start > v_end : #dec motion
+        else:# abs_v_start > abs_v_end  : #dec motion
             if(v_start >= 0 and v_end >= 0): # positive motion
                 j_max_to_vf = -j_max #math.copysign(j_max, v_end)
-                j_max = math.copysign(j_max, v_end)
+                j_max = +j_max #math.copysign(j_max, v_start)
             elif (v_start <= 0 and v_end <= 0): # negative motion
                 j_max_to_vf = j_max #math.copysign(j_max, v_end)
-                j_max = math.copysign(j_max, v_end)
+                j_max = -j_max # math.copysign(j_max, v_end)
     return j_max_to_vf, j_max
 
 
@@ -107,7 +107,7 @@ def fit_traj_segment(p_start, p_end, v_start, v_end, p_max, v_max, a_max, j_max,
     #############################################################################
     ## 1) complex motion:  positive and negative velocities, v_start*v_end<0 ####
     #############################################################################
-    if (v_start * v_end) < 0 : #complex motion:  positive and negative velocity, check min distance to change diraction of the motion
+    if (v_start * v_end) < 0.0 : #complex motion:  positive and negative velocity, check min distance to change diraction of the motion
         minPos_to_zero, acc_to_zero, t_jrk_to_zero, t_acc_to_zero = traj.calculate_minPos_reachAcc_maxJrkTime_maxAccTime_to_final_vel(v_start,   0.0,   v_max, a_max, j_max)
         minPos_to_vf, acc_to_vf, t_jrk_to_vf, t_acc_to_vf         = traj.calculate_minPos_reachAcc_maxJrkTime_maxAccTime_to_final_vel(    0.0, v_end,   v_max, a_max, j_max) 
         pos_diff = p_end - p_start
@@ -115,8 +115,8 @@ def fit_traj_segment(p_start, p_end, v_start, v_end, p_max, v_max, a_max, j_max,
   
         
         ######################## A) complex positive motion case ########################
-        if pos_dominant > 0:  ## positive dominant case, main part of the motion is in the +ve direction 
-            if v_start < 0 and v_end > 0: # from negative to positive 
+        if pos_dominant > 0.0:  ## positive dominant case, main part of the motion is in the +ve direction 
+            if v_start < 0.0 and v_end > 0.0: # from negative to positive 
                 if abs(p_start+minPos_to_zero) > p_max or abs(p_start+minPos_to_zero+minPos_to_vf) > p_max or  abs(p_start+minPos_to_zero+minPos_to_vf+pos_dominant) > p_max:
                     raise ValueError("non feasible case: violate p_max" ) 
                 
@@ -126,7 +126,7 @@ def fit_traj_segment(p_start, p_end, v_start, v_end, p_max, v_max, a_max, j_max,
                 segment_jerks_and_durations = [( j_max, t_jrk_to_zero),  (0.0, t_acc_to_zero),  (-j_max, t_jrk_to_zero ),
                                                ( j_max, t_jrk_to_vf),    (0.0, t_acc_to_vf),    (-j_max, t_jrk_to_vf ),
                                                ( j_max, t_jrk_dominant), (0.0, t_acc_dominant), (-j_max, t_jrk_dominant),   (0, t_vel_dominant),(-j_max, t_jrk_dominant), (0.0, t_acc_dominant), (j_max, t_jrk_dominant) ]                    
-            elif v_start > 0 and v_end < 0: #from positive to negative
+            elif v_start > 0.0 and v_end < 0.0: #from positive to negative
                 if abs(p_start+pos_dominant) > p_max or abs(p_start+pos_dominant+minPos_to_zero) > p_max or  abs(p_start+pos_dominant+minPos_to_zero+minPos_to_vf) > p_max:
                     raise ValueError("non feasible case: violate p_max" )               
                 
@@ -140,8 +140,8 @@ def fit_traj_segment(p_start, p_end, v_start, v_end, p_max, v_max, a_max, j_max,
                 raise ValueError("\n>> should be simple motion instead of complex motion case!" ) 
                 
         ######################## B) complex negative motion case ########################
-        if pos_dominant < 0:  ## negative dominant case, main part of the motion is in the -ve direction  
-            if v_start < 0 and v_end > 0: # from negative to positive
+        if pos_dominant < 0.0:  ## negative dominant case, main part of the motion is in the -ve direction  
+            if v_start < 0.0 and v_end > 0.0: # from negative to positive
                 if abs(p_start+pos_dominant) > p_max or abs(p_start+pos_dominant+minPos_to_zero) > p_max or  abs(p_start+pos_dominant+minPos_to_zero+minPos_to_vf) > p_max:
                     raise ValueError("non feasible case: violate p_max" )                
                 
@@ -150,7 +150,7 @@ def fit_traj_segment(p_start, p_end, v_start, v_end, p_max, v_max, a_max, j_max,
                 segment_jerks_and_durations = [(-j_max, t_jrk_dominant), (0.0, t_acc_dominant), ( j_max, t_jrk_dominant),  (0, t_vel_dominant),(j_max, t_jrk_dominant), (0.0, t_acc_dominant), (-j_max, t_jrk_dominant),
                                                ( j_max, t_jrk_to_zero),  (0.0, t_acc_to_zero),  (-j_max, t_jrk_to_zero ),
                                                ( j_max, t_jrk_to_vf),    (0.0, t_acc_to_vf),    (-j_max, t_jrk_to_vf ) ]
-            elif v_start > 0 and v_end < 0: #from positive to negative
+            elif v_start > 0.0 and v_end < 0.0: #from positive to negative
                 if abs(p_start+minPos_to_zero) > p_max or abs(p_start+minPos_to_zero+minPos_to_vf) > p_max or  abs(p_start+minPos_to_zero+minPos_to_vf+pos_dominant) > p_max:
                     raise ValueError("non feasible case: violate p_max" )      
                     
