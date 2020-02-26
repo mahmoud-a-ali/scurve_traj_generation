@@ -22,10 +22,10 @@ def form_seg_jt_2_jt_seg(lst):
     return lst    
     
 def project_limits_onto_s(limits, function):
-    print "function: {}".format( diff(function) )    
+    #print "function: {}".format( function )    
     #print "limits: {}".format( limits )    
     slope = np.abs(np.array(diff(function)).astype(np.float64).flatten())
-    print "slope: {}".format( slope )    
+    #print "slope: {}".format( slope )    
     limit_factor = limits / slope
     #return min(limit_factor)
     return limit_factor.tolist()
@@ -182,4 +182,5 @@ def trajectory_for_path(path, v_start, v_end, max_velocities, max_accelerations,
             PiecewiseFunction(trajectory_boundaries, traj_vel_seg_jt, t),
             PiecewiseFunction(trajectory_boundaries, traj_acc_seg_jt, t),
             PiecewiseFunction(trajectory_boundaries, traj_jrk_seg_jt, t))
+
 

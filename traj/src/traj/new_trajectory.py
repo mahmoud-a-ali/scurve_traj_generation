@@ -22,10 +22,10 @@ def form_seg_jt_2_jt_seg(lst):
     return lst    
     
 def project_limits_onto_s(limits, function):
-    print "function: {}".format( diff(function) )    
+    #print "function: {}".format( function )    
     #print "limits: {}".format( limits )    
     slope = np.abs(np.array(diff(function)).astype(np.float64).flatten())
-    print "slope: {}".format( slope )    
+    #print "slope: {}".format( slope )    
     limit_factor = limits / slope
     #return min(limit_factor)
     return limit_factor.tolist()
@@ -142,8 +142,13 @@ def trajectory_for_path(path, v_start, v_end, max_velocities, max_accelerations,
             s_pos, s_vel, s_acc, s_jrk  = traj.fit_traj_segment(0, s1-s0, s_estimated_vel[segment_i][jt], s_estimated_vel[segment_i+1][jt], 30.0, v_max[jt], a_max[jt], j_max[jt], t)
             s_pos_jt.append( s_pos )            
 #            print "\n>>> s_pos: {}".format( s_pos )
-#            jt_start_t = jt_times[jt][-1]
 
+#            print "\n>>> n_functions: {}".format( len(s_position.functions) )
+#            print "\n>>> s_position: {}".format(s_position.functions)
+#            print "\n>>> s_velocity: {}".format( s_velocity.functions)
+#            print "\n>>> s_acceleration: {}".format(s_acceleration.functions)
+#            print "\n>>> s_jerk: {}".format( s_jerk.functions)
+  
         
         for function_i in range(len(s_pos_jt[0].functions)):
             pos_vs_t = []
@@ -169,13 +174,7 @@ def trajectory_for_path(path, v_start, v_end, max_velocities, max_accelerations,
             #### are not synch in time, which time you can choose 
             trajectory_boundaries.append(s_pos_jt[0].boundaries[function_i + 1] + this_segment_start_time ) 
             
-    print "\n trajectory_boundaries={}".format( trajectory_boundaries   )
-    print "\n len_trajectory_boundaries={}".format( len(trajectory_boundaries)   )
-    print "\n traj_jrk_seg_jt[jt]={}".format( traj_jrk_seg_jt[0][0]   )
-
-
-    print "\n traj_acc_seg_jt={}".format( len(traj_acc_seg_jt)   )
-    print "\n traj_acc_seg_jt[jt]={}".format( traj_acc_seg_jt[0]   )
+    print "\n traj_jrk_seg_jt[jt]={}".format( traj_jrk_seg_jt[0]   )
 
 
     return (PiecewiseFunction(trajectory_boundaries, traj_pos_seg_jt, t),

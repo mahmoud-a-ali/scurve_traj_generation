@@ -12,6 +12,21 @@ path = np.array([(0.0, 0.0), (1.0, 1.0), (1.5, 0.8), (-0.2, 0.4)])
 
 path_function = traj.parameterize_path(path)
 
+
+##  0     (0+.4s)   10    (10-.4s)       15:  s= [0, 22, 33] approximatly 
+##  5     (5+.8s)   25    (25-.8s)       15
+path = np.array([(0.0, 5.0), (10.0, 25.0), (5.0, 15.0)])
+functions= traj.parameterize_path(path)
+print functions.functions[0]
+print functions.functions[1]
+print functions.boundaries
+
+print "\n sample:"
+print functions.sample(4)[0]
+print functions.sample(4)[1]
+exit()
+
+
 # Plot sampled points along the parametrized path.
 traj.plot.plot_2d_path(plt.gca(), path_function, 100)
 

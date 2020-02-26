@@ -14,8 +14,8 @@ def check_fit_traj_segment(p_start, p_end, v_start, v_end, p_max, v_max, a_max, 
     p_end_computed = position(t_end)[0]
     v_end_computed = velocity(t_end)[0]
     
-    #print p_start_computed, p_end_computed, v_start_computed, v_end_computed
-    #print " ", p_start, p_end, v_start, v_end
+    print p_start_computed, p_end_computed, v_start_computed, v_end_computed
+    print " ", p_start, p_end, v_start, v_end
     
     assert np.isclose(p_start, p_start_computed)
     assert np.isclose(p_end, p_end_computed)    
@@ -29,7 +29,13 @@ v_max=3.0
 a_max=4.0
 j_max=10.0 
      
-        
+#case Debug 
+def test_debug_Case():
+    check_fit_traj_segment(0, 2.2360679775,      0.0, 0.14,   30.0, 0.0585401227587, 0.0780534970116, 0.195133742529 )  
+    ## should output error that it violates v_max    
+           
+
+
 
 ############### CASE A: v_start = v_end = 0    [normal case, start and end velocities are zeros]
 #case A1:  no limit is reached     

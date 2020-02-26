@@ -8,7 +8,6 @@ and returns pos, vel, acc, jrk at that time instant
 """
 
 import numpy as np
-from matplotlib import pyplot as plt
 
 
 def find_phase(t, T_ph):
@@ -45,12 +44,7 @@ def sample( t, p_start, v_start, T_ph, Jrk_v,  Acc_v, Vel_v, Pos_v):
   
   
   
-def sample_segment(t, t_start, p_start, v_start, ph_jrk_dur ):
-    #convet duration and jrk to 1d list
-    jrk_dur_arr = np.array( ph_jrk_dur)
-    J =  jrk_dur_arr[:,0].tolist()
-    T =  jrk_dur_arr[:,1].tolist()
-    
+def sample_segment(t, t_start, p_start, v_start, J, T):#ph_jrk_dur ):
     #convert dur to  times
     T_ph = [ sum(T[0:i]) for i in range(0, len(T)+1) ]
        
@@ -66,8 +60,8 @@ def sample_segment(t, t_start, p_start, v_start, ph_jrk_dur ):
     return sample( t-t_start, p_start, v_start, T_ph, J,  A, V, P)
 
         
-#
-##test case
+
+#########test case
 #t_jrk=01.0
 #t_acc=01.0
 #t_vel=0.50
@@ -82,14 +76,6 @@ def sample_segment(t, t_start, p_start, v_start, ph_jrk_dur ):
 #j_max_to_vf = -5
 #jrk_dur = [(j_max, t_jrk), (0.0, t_acc), (-j_max, t_jrk), (0.0, t_vel), (-j_max,t_jrk), (0.0, t_acc), (j_max, t_jrk),    
 #                               (j_max_to_vf, t_jrk_to_vf), (0.0, t_acc_to_vf), (-j_max_to_vf, t_jrk_to_vf)]
-#
-##j_max = 5
-##j_max_to_vf = 5
-##jrk_dur = [(j_max_to_vf, t_jrk_to_vf), (0.0, t_acc_to_vf), (-j_max_to_vf, t_jrk_to_vf),
-##           (j_max, t_jrk), (0.0, t_acc), (-j_max, t_jrk), (0.0, t_vel), (-j_max,t_jrk), (0.0, t_acc), (j_max, t_jrk)]
-#
-#
-#
 #
 #
 #
@@ -124,11 +110,10 @@ def sample_segment(t, t_start, p_start, v_start, ph_jrk_dur ):
 #axes[3].plot(Tim, JRK)
 #
 #plt.show()
-#
-#
-#
-#
-#
-#
-#
-#
+
+
+
+
+
+
+

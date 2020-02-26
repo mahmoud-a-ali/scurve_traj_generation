@@ -1,0 +1,10 @@
+>> n_segs= 999 segment
+>> avg_t_calculate_seg_max_vel= 0.0153316988482 msec
+>> avg_t_to_fit_seg= 0.0083055104818 msec
+>> avg_t_to_sample = 0.0180983117649 msec 
+
+>> time to estimate max_vel for 1000 waypts =   31.1739444733 msec
+>> predictable time to estimate max_vel for 1000 waypts =  30.6327342987 msec 
+
+>> total time of parameterization (find_max_vel, and fit_non-zero segment), and sampling of 1000 waypoints= 125.579833984 msec 
+

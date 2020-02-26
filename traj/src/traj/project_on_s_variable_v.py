@@ -73,12 +73,11 @@ max_jerks = np.deg2rad(np.array([
  
 ]))
 
-print max_jerks
 
-max_positions =[  30.0,    30.0]
-max_velocities =[  3.0,    3.0]
-max_accelerations = [  4.0,    4.0]
-max_jerks = [  6.0,    6.0]
+
+max_velocities =[  3.0,    3.0,]
+max_accelerations = [  4.0,    4.0,]
+max_jerks = [  10.0,    10.0,]
 
 
 
@@ -106,76 +105,22 @@ v_start= [ 0.0, 0.1]
 v_end  = [ 0.2, 0.0]
  
  
-path = np.array([ (0.0, 0.0), (1.0, .50) ,   (1.3, 1.2), (1.9, 1.7)]) 
-path = np.array([ (0.0, 0.0), (1.0, .50) ,   (1.5, 1.8), (1.9, 1.0)]) 
-
-path = np.array([ (0.0, 0.0), (0.4, 0.3) , ( 1.5, 1.5) ] ) 
-#path = np.array([ (0.0, 0.0), (0.4, 0.0) , ( 0.5, 0.5) ] ) 
-
-
-v_start= [ 0.1, 0.0]
-v_end  = [ 0.5, 0.2]
- 
-path = np.array([ (0.0, 0.0), (1.0, 0.5), (1.5, 1.5) ]) 
-v_start= [ 0.0, 0.0]
+path = np.array([ (0.0, 0.0), (1.0, 1.0) ,   (1.7, 1.7), (2.7, 2.7)]) 
+v_start= [ 0.1, 0.1]
 v_end  = [ 0.0, 0.0]
+ 
+#path = np.array([ (0.0, 0.0), (1.0, 0.5) ]) 
+#v_start= [ 0.0, 0.1]
+#v_end  = [ 0.0, 0.0]
 
 n_jts = len( v_start)
  
- 
-##################### test n-dof : to find max reachable vel per individual path seperately #######################
-#rot_path = np.rot90(path).tolist()
-#rot_path.reverse()
-#Frwd_common_vel, Bkwd_common_vel, estimated_vel = traj.estimated_common_vel_for_npath(rot_path, v_start, v_end, max_positions[0], max_velocities[0], max_accelerations[0], max_jerks[0])
-#print "Frwd_max_vel: {}".format( Frwd_common_vel )
-#print "Bkwd_max_vel: {}".format( Bkwd_common_vel )
-#print "estimated_vel: {}".format( estimated_vel )
-#
-#
-#fig = plt.figure()   
-#plt.plot( Frwd_common_vel, 'r-', label='bk_vel')
-#plt.plot( Frwd_common_vel, 'or')
-#
-#plt.plot( Bkwd_common_vel, '-b', label='fw_vel')
-#plt.plot( Bkwd_common_vel, 'bo')
-#
-#plt.plot( estimated_vel, '-g', label='common_vel')
-#plt.plot( estimated_vel, 'go')
-#
-#plt.xlabel("waypoints")
-#plt.ylabel("velocity")
-#plt.legend()
-#plt.grid()
-##plt.show()
-
-
-#####################  v1: test n-dof : to find max reachable  #######################
-rot_path = np.rot90(path).tolist()
-rot_path.reverse()
-
-estimated_vel = traj.find_max_estimated_vel_per_ndof_path(rot_path, v_start, v_end, max_positions[0], max_velocities[0], max_accelerations[0], max_jerks[0])
-print "max_estimated_vel: {}".format( estimated_vel )
-
-fig = plt.figure()
-for jt in range(n_jts): 
-    plt.plot( estimated_vel[jt],  label='max_ve_jt_{}'.format(jt))
-    plt.plot( estimated_vel[jt], 'o')
-
-plt.xlabel("waypoints")
-plt.ylabel("velocity")
-plt.legend()
-plt.grid()
-plt.show()
-
-estimated_vel= np.rot90(estimated_vel).tolist()
-estimated_vel.reverse()
-print "estimated_vel_seg_jt: {}".format( estimated_vel )
-
-
 (trajectory_position_function, trajectory_velocity_function, trajectory_acceleration_function,
- trajectory_jerk_function) = traj.trajectory_for_path_v0(path, estimated_vel, max_positions,  max_velocities, max_accelerations, max_jerks)
+ trajectory_jerk_function) = traj.trajectory_for_path(path, v_start, v_end,  max_velocities,
+                                                      max_accelerations,
+                                                      max_jerks)
 
-#print "\n\n\n>>> trajectory_jerk_function: \n{}".format(trajectory_jerk_function.functions )
+print "\n\n\n>>> trajectory_jerk_function: \n{}".format(trajectory_jerk_function.functions )
 
 if plot_trajectory:
 #    for jt in range(n_jts):

@@ -27,15 +27,21 @@ def form_seg_jt_2_jt_seg(lst):
     
     
     
+#def project_limits_onto_s(limits, function):
+#    #print "function: {}".format( function )    
+#    #print "limits: {}".format( limits )    
+#    slope = np.abs(np.array(diff(function)).astype(np.float64).flatten())
+#    #print "slope: {}".format( slope )    
+#    limit_factor = limits / slope
+##    print "limit_factor: {}".format( limit_factor )
+#    #return min(limit_factor)
+#    return limit_factor.tolist()
+
 def project_limits_onto_s(limits, function):
-    #print "function: {}".format( function )    
-    #print "limits: {}".format( limits )    
-    slope = np.abs(np.array(diff(function)).astype(np.float64).flatten())
-    #print "slope: {}".format( slope )    
+    slope = np.abs(np.array( [diff(func) for func in function ] ).astype(np.float64).flatten())
     limit_factor = limits / slope
-#    print "limit_factor: {}".format( limit_factor )
-    #return min(limit_factor)
     return limit_factor.tolist()
+#    return min(limit_factor)
 
 
 
@@ -137,9 +143,9 @@ def trajectory_for_path_v2(path, estimated_max_vel, max_positions,  max_velociti
             traj_jrk_ph = []
             for function_i in range(len(s_pos.functions)):
                 position_vs_t = fsegment.subs(s, s_pos.functions[function_i])
-                velocity_vs_t = diff(position_vs_t, t)
-                acceleration_vs_t = diff(velocity_vs_t, t)
-                jerk_vs_t = diff(acceleration_vs_t, t)
+                velocity_vs_t = Matrix( [diff(pos, t) for pos in position_vs_t ]  )
+                acceleration_vs_t = Matrix( [diff(vel, t) for vel in velocity_vs_t ] ) 
+                jerk_vs_t = Matrix( [diff(acc, t) for acc in acceleration_vs_t ] )
 
                 traj_times_jt[jt].append(s_pos.boundaries[function_i + 1] + jt_seg_start_time)               
                 traj_pos_ph.append(position_vs_t[jt])

@@ -175,33 +175,33 @@ def calculate_tj_reachableAcc_vend_for_pos_diff_3ph(Dp, abs_v_start, vm, am, jm)
     
   
          
-def max_reachable_vel(p_start, p_end, v_start, abs_max_pos, abs_max_vel, abs_max_acc, abs_max_jrk):
+def max_reachable_vel(abs_pos_diff, abs_v_start, abs_max_pos, abs_max_vel, abs_max_acc, abs_max_jrk):
     """
-    the maximum reachable velocity at the end of the segment, based on pf-p0
+    the maximum reachable velocity at the end of the segment, based on the position difference: 1. (p_end - p_start), 2.v_start
+    this functions return the phase times: tj, ta, tv considering max three phases: [acc profile be like /`````\........ ] 
+    a) tj: time to reach max  acc 
+    b) ta: time to reach max vel
+    c) tv: time with max vel to complete the required position difference p_end-p_start   
     """         
-    pos_diff = p_end - p_start
-    abs_pos_diff = abs(pos_diff)
-    abs_v_start = abs(v_start)
-    
-    rospy.logdebug( "\n max_vel_info: pos_diff={}, v_start ={} ".format(pos_diff, v_start) )
+    rospy.logdebug( "\n max_vel_info: pos_diff={}, v_start ={} ".format( abs_pos_diff, abs_v_start) )
 
     #########################################################################################
     ############ A) if (pos_diff is zero), then time is zero and v_end = v_start ############
     #########################################################################################
-    if pos_diff == 0.0:
+    if abs_pos_diff == 0.0:
         rospy.logdebug("\n>>> case A")
         tj= 0.0
         ta= 0.0
         tv= 0.0
-        v_end= v_start
-        return tj, ta, tv, v_end
+        abs_v_end= abs_v_start
+        return tj, ta, tv, abs_v_end
         
         
         
     #################################################################################################################
     ############ B) if (pos_diff and v0 have same sign), then (vf is +ve) and (vf is based on pos_diff)  ############
     #################################################################################################################
-    elif (pos_diff > 0.0 and v_start >= 0.0) or (pos_diff < 0.0 and v_start <= 0.0):
+    elif abs_pos_diff > 0.0 and abs_v_start >= 0.0:  
         rospy.logdebug(  "\n>>> case B")   
         #calculate minPos_to_absMaxVel
         minPos_to_absMaxVel, acc_to_absMaxVel, tj, ta = calculate_minPos_reachAcc_maxJrkTime_maxAccTime_to_absMaxVel_3ph(abs_v_start, abs_max_vel, abs_max_acc, abs_max_jrk)
@@ -210,9 +210,9 @@ def max_reachable_vel(p_start, p_end, v_start, abs_max_pos, abs_max_vel, abs_max
         ###### B1) if abs_pos_diff >= minPos_to_absMaxVel, then reach to vm and then continue with vm
         if abs_pos_diff >= minPos_to_absMaxVel:
             rospy.logdebug( "\n>>> case B1")
-            v_end = abs_max_vel
+            abs_v_end = abs_max_vel
             tv = (abs_pos_diff - minPos_to_absMaxVel) / abs_max_vel
-            return tj, ta, tv, v_end
+            return tj, ta, tv, abs_v_end
         
         
         ###### B2) else abs_pos_diff < minPos_to_absMaxVel, and acc_to_absMaxVel >= abs_max_acc
@@ -228,27 +228,27 @@ def max_reachable_vel(p_start, p_end, v_start, abs_max_pos, abs_max_vel, abs_max
                 tj= abs_max_acc/abs_max_jrk
                 rospy.logdebug( ">>>case B2a" )
                 #calculate ta, v_end:
-                ta, v_end = calculate_ta_vend_for_pos_diff_3ph(abs_pos_diff, abs_v_start, abs_max_vel, abs_max_acc, abs_max_jrk)
-                rospy.logdebug( "tj={},  ta={},  tv={},     v_end= {}".format( tj, ta, tv,  v_end ) )
-                return tj, ta, tv, v_end
+                ta, abs_v_end = calculate_ta_vend_for_pos_diff_3ph(abs_pos_diff, abs_v_start, abs_max_vel, abs_max_acc, abs_max_jrk)
+                rospy.logdebug( "tj={},  ta={},  tv={},     v_end= {}".format( tj, ta, tv,  abs_v_end ) )
+                return tj, ta, tv, abs_v_end
                 
             #### B2b) else abs_pos_diff < minPos_to_absMaxAcc, then calculate tj such that it gives  abs_pos_diff, ta is already known: ta= 0.0  
             else:
                 ta= 0.0
                 rospy.logdebug( ">>>case B2b" )
                 #calculate tj, a, v_end:
-                tj, reached_Acc, v_end = [2, 2, 2]
-                tj, reached_Acc, v_end = calculate_tj_reachableAcc_vend_for_pos_diff_3ph(abs_pos_diff, abs_v_start, abs_max_vel, abs_max_acc, abs_max_jrk)
-                rospy.logdebug(  "tj={},  ta={},  tv={},   reached_Acc={},     v_end={}".format( tj, ta, tv, reached_Acc, v_end ) )
-                return tj, ta, tv, v_end
+                tj, reached_Acc, abs_v_end = calculate_tj_reachableAcc_vend_for_pos_diff_3ph(abs_pos_diff, abs_v_start, abs_max_vel, abs_max_acc, abs_max_jrk)
+                rospy.logdebug(  "tj={},  ta={},  tv={},   reached_Acc={},     v_end={}".format( tj, ta, tv, reached_Acc, abs_v_end ) )
+                return tj, ta, tv, abs_v_end
             
             
             
     #################################################################################################################################################################        
     ############ C) if (pos_diff and v0 have different sign), then (vf is opposite to v0 sign) and (vf is based on both pos_diff_v0_0 and pos_diff_0_vf) ############
     #################################################################################################################################################################
-    elif (pos_diff > 0.0 and v_start < 0.0) or (pos_diff < 0.0 and v_start > 0.0):
+    elif abs_pos_diff < 0.0 or abs_v_start < 0.0:#(pos_diff > 0.0 and v_start < 0.0) or (pos_diff < 0.0 and v_start > 0.0):
         rospy.logdebug(  "\n>>> complex case: not implemented yet "  )      
+        raise ValueError("Case C: in param_max_vel" )
         return 0.0, 0.0, 0.0, 0.0
         
         

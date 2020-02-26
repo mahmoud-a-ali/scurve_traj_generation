@@ -35,12 +35,12 @@ waypts = [0.2, .8, 1.0, 1.2,  2.5, 2.8, 3.0, 4.2, 4.4, 5.0]
 waypts = [0.5, .8, 1.0, 1.2, 1.6, 2.0, 2.3, 2.5, 2.8, 3.0, 3.1, 3.4, 3.7, 4.2, 4.4, 5.0]
 
 ####consider sub-sampling same traj in such a way #waypoints =100, n_segs = 99 
-#sub_sampled_traj  = np.linspace(waypts[0], waypts[-1], 100)
-#waypts = sub_sampled_traj.tolist()
+sub_sampled_traj  = np.linspace(waypts[0], waypts[-1], 100)
+waypts = sub_sampled_traj.tolist()
 
 ###consider trajectory with n equal-distance waypoints  
-#sub_sampled_traj  = np.linspace( 2.0, 25.0, 1000)
-#waypts = sub_sampled_traj.tolist()
+sub_sampled_traj  = np.linspace( 2.0, 25.0, 1000)
+waypts = sub_sampled_traj.tolist()
 
 ##variables 
 n_segs = len(waypts) -1

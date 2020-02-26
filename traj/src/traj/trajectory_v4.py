@@ -13,6 +13,8 @@ def reverse_list( lst ):
     arr.reverse()
     return arr
 
+
+
 def form_seg_jt_2_jt_seg(lst):
     #n_segs  = len( lst )
     #n_jts   = len( lst[0] )
@@ -23,99 +25,194 @@ def form_seg_jt_2_jt_seg(lst):
     lst.reverse()   
     return lst    
     
+    
 def project_limits_onto_s(limits, function):
     #print "function: {}".format( function )    
     #print "limits: {}".format( limits )    
     slope = np.abs(np.array(diff(function)).astype(np.float64).flatten())
-    #print "slope: {}".format( slope )    
+    print "slope: {}".format( slope )    
     limit_factor = limits / slope
     #return min(limit_factor)
     return limit_factor.tolist()
 
-
-def trajectory_for_path_v3(path, v_start, v_end, max_velocities, max_accelerations, max_jerks):       
+def calculate_slope(function ):  
+    slope = np.abs(np.array( [diff(func) for func in function ] ).astype(np.float64).flatten())
+    print "slope: {}".format( slope )    
+    return slope
+    
+    
+def calculate_new_Tph(Tph, T_new):
+    if sum(Tph) ==0:
+        return  Tph       
+        #raise ValueError("no motion case" )  
+    return [ (T_new-sum(Tph) )*t/sum(Tph) + t for t in Tph    ]
+      
+    
+def convert_Tph_to_5ti(Tph):
+    tj1 = Tph[1] - Tph[0]
+    ta1 = Tph[2] - Tph[1]
+    tj  = Tph[4] - Tph[3]
+    ta  = Tph[5] - Tph[4]
+    tv  = Tph[7] - Tph[6]
+    return [tj1, ta1, tj, ta, tv]
+    
+    
+def convert_dur_ph_to_5ti(Tph):
+    tj1 = Tph[0]
+    ta1 = Tph[1] 
+    tj  = Tph[4] 
+    ta  = Tph[5] 
+    tv  = Tph[7] 
+    return [tj1, ta1, tj, ta, tv]
+        
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+def trajectory_for_path_v4(path, q_v_start, q_v_end, q_max_vel, q_max_acc, q_max_jrk):       
     path_function = parameterize_path(path)
     t = Symbol('t')
     s = path_function.independent_variable    
 
     n_segs = len(path_function.functions)
     n_wpts = n_segs +1
-    n_jts  = len(v_start)
+    n_jts  = len(q_v_start)
     
     
-############################ FW VEL ######################   
-    s_fw_vel = []  
+###### FW VEL 
+    s_fw_vel = [] 
+    #project v_start into s: s_dot = q_dot/slope
+    s_fw_vel.append( [ 0.0 for jt in range(n_jts)] )# q_v_start / calculate_slope(path_function.functions[0]) )
+    print s_fw_vel
+    
     for seg in range(n_segs):
         fsegment = path_function.functions[seg]
         s0 = path_function.boundaries[seg]
         s1 = path_function.boundaries[seg + 1]
+        print "\n\n\n\n########################## fsegment_seg: {} ##########################: \n>>s-fun: {}".format(seg, fsegment)
         
         # Project joint limits onto this segment's direction to get limits on s
-        v_max = project_limits_onto_s(max_velocities, fsegment)
-        a_max = project_limits_onto_s(max_accelerations, fsegment)
-        j_max = project_limits_onto_s(max_jerks, fsegment)
-
-        if seg == 0:
-            s_v_start = project_limits_onto_s(v_start, fsegment)
-            s_fw_vel.append( s_v_start)
+        slope = calculate_slope( fsegment)
+        s_v_max = q_max_vel / slope
+        s_a_max = q_max_acc / slope
+        s_j_max = q_max_jrk / slope
+        print "\ns_v_max: {},  \ns_a_max:{},  \ns_j_max:{}".format( s_v_max, s_a_max, s_j_max )
+        
+        s_nxt_vel = []
+        seg_pos_ph = []
+        seg_vel_ph = []
+        seg_acc_ph = []
+        seg_jrk_ph = []
+        seg_durs_jt = []
+        
+        for jt in range(n_jts):
+            tj, ta, tv, s_v_nxt = traj.max_reachable_vel( s1-s0, s_fw_vel[seg][jt], 30.0, s_v_max[jt], s_a_max[jt], s_j_max[jt])      
             
-        s_nxt_vel = []
+            print "\n>>>>>>>>>> jt {}: pos_diff= {},  v0={},  vnxt={}".format( jt, s1-s0, s_fw_vel[seg][jt], s_v_nxt )
+            s_pos, s_vel, s_acc, s_jrk  = traj.fit_traj_segment(0, s1-s0, s_fw_vel[seg][jt], s_v_nxt, s1-s0, s_v_max[jt], s_a_max[jt], s_j_max[jt], t)
+            
+            jt_pos_ph = []
+            jt_vel_ph = []
+            jt_acc_ph = []
+            jt_jrk_ph = []
+            jt_dur_ph = []
+            for function_i in range(len(s_pos.functions)):
+                print "pos_function_i: {}".format(s_pos.functions[function_i])
+                pos_vs_t = fsegment.subs(s, s_pos.functions[function_i])
+                vel_vs_t = Matrix( [diff(pos, t) for pos in pos_vs_t ] ) 
+                acc_vs_t = Matrix ( [diff(vel, t) for vel in vel_vs_t] )
+                jrk_vs_t = Matrix ( [diff(acc, t) for acc in acc_vs_t] )
+                
+                
+                jt_dur_ph.append(s_pos.boundaries[function_i + 1] - s_pos.boundaries[function_i])# + jt_seg_start_time)               
+                jt_pos_ph.append(pos_vs_t[jt])
+                jt_vel_ph.append(vel_vs_t[jt])
+                jt_acc_ph.append(acc_vs_t[jt])
+                jt_jrk_ph.append(jrk_vs_t[jt])
+                
+            seg_durs_jt.append( jt_dur_ph )
+            
         for jt in range(n_jts):
-            print "\n>> s1-s0, s_fw_vel[seg][jt], 30.0, v_max[jt], a_max[jt], j_max[jt] "
-            print s1-s0, s_fw_vel[seg][jt], 30.0, v_max[jt], a_max[jt], j_max[jt]
-            tj, ta, tv, s_v_nxt = traj.max_reachable_vel( s1-s0, s_fw_vel[seg][jt], 30.0, v_max[jt], a_max[jt], j_max[jt])
-            s_nxt_vel.append( s_v_nxt )   
-        s_fw_vel.append( s_nxt_vel )
-    print "\n>>> s_fw_vel: \n {} \n\n".format( s_fw_vel)
- 
-   
-   
-   
-   
-############################ BK VEL ######################   
-    s_bk_vel = []
-    for seg in range(n_segs):
-        fsegment = path_function.functions[n_segs - seg -1 ]
-        s0 = path_function.boundaries[n_segs - seg - 1]
-        s1 = path_function.boundaries[n_segs - seg ]
+            print ">>> seg_dur_jt_{}:  {} \n {}".format( jt, sum(seg_durs_jt[jt]), seg_durs_jt[jt]  )
+            
+        max_seg_dur = max( [sum(seg_durs_jt[jt])  for jt in range(n_jts) ] ) 
         
-        # Project joint limits onto this segment's direction to get limits on s
-        v_max = project_limits_onto_s(max_velocities, fsegment)
-        a_max = project_limits_onto_s(max_accelerations, fsegment)
-        j_max = project_limits_onto_s(max_jerks, fsegment)
-    
-        if seg == 0:
-            s_v_end = project_limits_onto_s(v_end, fsegment)
-            s_bk_vel.append( s_v_end)
-
-        s_nxt_vel = []
+        new_jrk = []
+        s_vnxt_vec = []
         for jt in range(n_jts):
-            print "/n>> s1-s0, s_bk_vel[seg][jt], 30.0, v_max[jt], a_max[jt], j_max[jt] "
-            print  s1-s0, s_bk_vel[seg][jt], 30.0, v_max[jt], a_max[jt], j_max[jt] 
-            tj, ta, tv, s_v_nxt = traj.max_reachable_vel( s1-s0, s_bk_vel[seg][jt], 30.0, v_max[jt], a_max[jt], j_max[jt] )
-            s_nxt_vel.append( s_v_nxt )   
-        s_bk_vel.append( s_nxt_vel )
- 
-    s_bk_vel.reverse()
-    print "\n>>> s_bk_vel: \n {}".format( s_bk_vel)
-    
-
-
+            T_sync = calculate_new_Tph( seg_durs_jt[jt], max_seg_dur )
+            tj1, ta1, tj, ta, tv = convert_dur_ph_to_5ti(T_sync) 
+            print "tj1={}, ta1={}, tj={}, ta={},tv={}".format( tj1, ta1, tj, ta, tv )
+            jrk = traj.calculate_jrk_for_T(tj1, ta1, tj, ta, tv, s_fw_vel[seg][jt],  s1-s0)
+            new_jrk.append(jrk)            
+            print "jt: {}, jrk:{}".format( jt, jrk )
+            tj, ta, tv, s_v_nxt = traj.max_reachable_vel( s1-s0, s_fw_vel[seg][jt], 30.0, s_v_max[jt], s_a_max[jt], jrk)      
+            print "tj={}, ta={}, tv={}, s_v_nxt={}".format( tj, ta, tv, s_v_nxt )
+            s_vnxt_vec.append(s_v_nxt)
+        s_fw_vel.append(s_vnxt_vec)    
+            
+        for jt in range(n_jts):
+             print "\n>>> jt: {}, jrk:{}".format( jt, new_jrk[jt] )
+             print " s_v_nxt={}".format( s_fw_vel[jt])
 
    
-############################ estimated VEL ######################   
-    ##check condition when v_start or v_end is not feasible: v_start > max_v_start calculated using the backward loop or Vs
-    for jt in range(n_jts):
-        if s_fw_vel[0][jt] > s_bk_vel[0][jt] or s_bk_vel[-1][jt] > s_fw_vel[-1][jt] :
-            raise ValueError("combination of v_start({}) & v_end({}) for jt_{}is not feasible".format(s_fw_vel[0][jt], s_bk_vel[-1][jt], jt ) )                 
-    # calcuate max_rechable_vels that grantee v_end at the end of the trajectory for this portion of traj
-    s_estimated_vel = []
-    for wpt in range(n_wpts):
-        s_seg_vel= [ min(v) for v in zip( s_fw_vel[wpt], s_bk_vel[wpt])]
-        s_estimated_vel.append( s_seg_vel  )
-    print "\n>>> s_estimated_vel: \n {}\n\n\n".format( s_estimated_vel)
-    
-    
+
+   
+############################# BK VEL ######################   
+#    s_bk_vel = []
+#    for seg in range(n_segs):
+#        fsegment = path_function.functions[n_segs - seg -1 ]
+#        s0 = path_function.boundaries[n_segs - seg - 1]
+#        s1 = path_function.boundaries[n_segs - seg ]
+#        
+#        # Project joint limits onto this segment's direction to get limits on s
+#        slope = calculate_slope( fsegment)
+#        s_v_max = q_max_vel / slope
+#        s_a_max = q_max_acc / slope
+#        s_j_max = q_max_jrk / slope
+#    
+#        if seg == 0:
+#            s_v_end = project_limits_onto_s(v_end, fsegment)
+#            s_bk_vel.append( s_v_end)
+#
+#        s_nxt_vel = []
+#        for jt in range(n_jts):
+#            print "/n>> s1-s0, s_bk_vel[seg][jt], 30.0, v_max[jt], a_max[jt], j_max[jt] "
+#            print s1-s0, s_bk_vel[seg][jt], 30.0, s_v_max[jt], s_a_max[jt], s_j_max[jt]
+#            tj, ta, tv, s_v_nxt = traj.max_reachable_vel( s1-s0, s_bk_vel[seg][jt], 30.0, s_v_max[jt], s_a_max[jt], s_j_max[jt])
+#            s_nxt_vel.append( s_v_nxt )   
+#        s_bk_vel.append( s_nxt_vel )
+# 
+#    s_bk_vel.reverse()
+#    print "\n>>> s_bk_vel: \n {}".format( s_bk_vel)
+#    
+#
+#
+#
+#   
+############################# estimated VEL ######################   
+#    ##check condition when v_start or v_end is not feasible: v_start > max_v_start calculated using the backward loop or Vs
+#    for jt in range(n_jts):
+#        if s_fw_vel[0][jt] > s_bk_vel[0][jt] or s_bk_vel[-1][jt] > s_fw_vel[-1][jt] :
+#            raise ValueError("combination of v_start({}) & v_end({}) for jt_{}is not feasible".format(s_fw_vel[0][jt], s_bk_vel[-1][jt], jt ) )                 
+#    # calcuate max_rechable_vels that grantee v_end at the end of the trajectory for this portion of traj
+#    s_estimated_vel = []
+#    for wpt in range(n_wpts):
+#        s_seg_vel= [ min(v) for v in zip( s_fw_vel[wpt], s_bk_vel[wpt])]
+#        s_estimated_vel.append( s_seg_vel  )
+#    print "\n>>> s_estimated_vel: \n {}\n\n\n".format( s_estimated_vel)
+#    
+   
+   
+    s_estimated_vel = s_fw_vel
+    print s_estimated_vel
 ############################ parameterize using estimated VEL ######################      
     traj_pos_seg_jt = []
     traj_vel_seg_jt = []
@@ -135,9 +232,10 @@ def trajectory_for_path_v3(path, v_start, v_end, max_velocities, max_acceleratio
         print ">>>>>>>>>>>>>> seg_{}: p_start={}, p_end={}, s1-s0={}".format(segment_i, p_start, p_end, s1-s0)
 
         # Project joint limits onto this segment's direction to get limits on s
-        v_max = project_limits_onto_s(max_velocities, fsegment)
-        a_max = project_limits_onto_s(max_accelerations, fsegment)
-        j_max = project_limits_onto_s(max_jerks, fsegment)
+        slope = calculate_slope( fsegment)
+        s_v_max = q_max_vel / slope
+        s_a_max = q_max_acc / slope
+        s_j_max = q_max_jrk / slope
         
 #        print "\n>>> s_v_max ={}".format(v_max)
 
@@ -153,9 +251,9 @@ def trajectory_for_path_v3(path, v_start, v_end, max_velocities, max_acceleratio
         traj_time_jt = [] 
         
         for jt in range(n_jts):
-            s_pos, s_vel, s_acc, s_jrk  = traj.fit_traj_segment(0, s1-s0, s_estimated_vel[segment_i][jt], s_estimated_vel[segment_i+1][jt], 30.0, v_max[jt], a_max[jt], j_max[jt], t)
             print "\n\n\n seg:{}, jt:{}".format(segment_i, jt)
-            print "\n>>> pos_diff: {},  v0:{},  vnxt:{}".format( s1-s0, s_estimated_vel[segment_i][jt], s_estimated_vel[segment_i+1][jt] )
+            print "\n>>> pos_diff: {},  v0:{},  vnxt:{}, jrk={}".format( s1-s0, s_estimated_vel[segment_i][jt], s_estimated_vel[segment_i+1][jt], new_jrk[jt] )
+            s_pos, s_vel, s_acc, s_jrk  = traj.fit_traj_segment(0, s1-s0, s_estimated_vel[segment_i][jt], s_estimated_vel[segment_i+1][jt], 30.0, s_v_max[jt], s_a_max[jt], new_jrk[jt], t)
 #            print "\n>>> type(s_pos.functions) : {}".format( type(s_pos.functions) )
 #            print "\n>>> type(s_pos.functions[0]) : {}".format( type(s_pos.functions[0]) )
 #            print "\n>>> s_pos.boundaries : {}".format( s_pos.boundaries )
@@ -168,9 +266,9 @@ def trajectory_for_path_v3(path, v_start, v_end, max_velocities, max_acceleratio
             traj_jrk_ph = []
             for function_i in range(len(s_pos.functions)):
                 position_vs_t = fsegment.subs(s, s_pos.functions[function_i])
-                velocity_vs_t = diff(position_vs_t, t)
-                acceleration_vs_t = diff(velocity_vs_t, t)
-                jerk_vs_t = diff(acceleration_vs_t, t)
+                velocity_vs_t = Matrix( [diff(pos, t) for pos in position_vs_t ]  )
+                acceleration_vs_t = Matrix( [diff(vel, t) for vel in velocity_vs_t ] ) 
+                jerk_vs_t = Matrix( [diff(acc, t) for acc in acceleration_vs_t ] )
 #                print "\n\n\ns_pos.boundaries[function_i + 1]:{} ".format( s_pos.boundaries[function_i + 1] ) 
 #                print " jt_seg_start_time[jt]: {}".format( jt_seg_start_time) 
                 traj_times_jt[jt].append(s_pos.boundaries[function_i + 1] + jt_seg_start_time)

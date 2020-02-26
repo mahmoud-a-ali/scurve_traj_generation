@@ -5,9 +5,29 @@ import seven_segment_type3
 import seven_segment_type4
 
 import plot
+
 from trajectory import trajectory_for_path
+from trajectory_v0 import trajectory_for_path_v0
+from trajectory_v1 import trajectory_for_path_v1
+from trajectory_v2 import trajectory_for_path_v2
+from trajectory_v3 import trajectory_for_path_v3
+from trajectory_v4 import trajectory_for_path_v4
+
+
+from find_sync_jerk import calculate_jrk_for_T
+#from find_sync_jerk import calculate_new_dur 
+
+
+
+from un_sync_trajectory import un_sync_trajectory_for_path
+
+
+
+from seven_segment_type3 import fit
 
 from traj_segment import fit_traj_segment
+from traj_segment import calculate_jerk_sign_and_duration
+
 from segment_planning import traj_segment_planning
 from segment_planning import calculate_minPos_reachAcc_maxJrkTime_maxAccTime_to_final_vel
 
@@ -18,5 +38,12 @@ from cubic_eq_roots import min_positive_root2
 from cubic_eq_roots import min_positive_root3
 
 from max_reachable_vel import max_reachable_vel
-from param_max_reachable_vel import max_reachable_vel_per_segment
+from param_max_reachable_vel import find_max_estimated_vel_per_path
+
+from param_max_reachable_vel import find_max_estimated_vel_per_ndof_path
+from param_max_reachable_vel import estimated_common_vel_for_npath
+
+
 from sample_segment import sample_segment
+
+from param_max_reachable_vel import set_stp_pts_to_zero

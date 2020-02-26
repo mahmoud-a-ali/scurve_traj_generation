@@ -58,32 +58,36 @@ def assign_jerk_sign_According_to_motion_type(p_start, p_end, v_start, v_end, p_
 
 
 
-### the main function to fit traj segment with generic start/end velocities 
-def fit_traj_segment(p_start, p_end, v_start, v_end, p_max, v_max, a_max, j_max, independent_variable=Symbol('t')):
-    """
-    main function to fit a trajectory segment for given start/end velocities/positions!
-    """
+
+
+
+
+
+############## function to calculate jerk sign and duration 
+def calculate_jerk_sign_and_duration(p_start, p_end, v_start, v_end, p_max, v_max, a_max, j_max, independent_variable=Symbol('t')):
     assert(a_max > 0.0)
     assert(j_max > 0.0)
     assert(v_max > 0.0)
     
-    #absolute value of the velocities    
-    abs_v_start = abs(v_start)
-    abs_v_end = abs(v_end)   
-        
         
     ######################## Step_1:  check limits for given start/end velocities/positions ####################
     # if absolute values v_start/v_end/p_end is greater than v_max/p_max, we replace the values with max one
     # another option is to raise error and exit 
     # for p_start: it depends on direction of v_start, as we can not put p_start as p_max if v_start is in +ve direction 
-    if(abs(v_start) > v_max):
-        rospy.logdebug("\nWarning: \n>>> these values are not feasible:  v_start should be within the limit v_max !")
+    if(abs(v_start) > v_max):       
         v_start = math.copysign(v_max, v_start)
+        rospy.logdebug("\nWarning: \n>>> these values are not feasible:  v_start should be within the limit v_max !")
+        rospy.logdebug(">>> v_start: {}, v_max: {}".format(v_start, v_max) )
+        #if abs(v_start) - v_max >1e-15:
+        raise ValueError("non feasible case: violate v_max, v_start: {}, v_max: {}".format(v_start, v_max) )
+
 
     if(abs(v_end) > v_max):
-        rospy.logdebug("\nWarning: \n>>> these values are not feasible,   v_end should be within the limit v_max !")
-        v_end = math.copysign(v_max, v_end)
-
+       v_end = math.copysign(v_max, v_end) 
+       rospy.logdebug("\nWarning: \n>>> these values are not feasible,   v_end should be within the limit v_max !")
+       rospy.logdebug(">>> v_end: {}, v_max: {}".format(v_end, v_max) )
+       raise ValueError("non feasible case: violate v_max, v_end: {}, v_max: {}".format(v_end, v_max) )
+ 
     if( abs(p_end) > p_max):
         rospy.logdebug("\nWarning: \n>>> these values are not feasible,   p_end should be within the limit p_max !")
         p_end = math.copysign(p_max, p_end)
@@ -101,6 +105,10 @@ def fit_traj_segment(p_start, p_end, v_start, v_end, p_max, v_max, a_max, j_max,
     elif (v_start<0 and v_end<0 and (p_end-p_start)>0): # -ve motion  vs +ve pos_diff
         raise ValueError("non feasible case: vel_motion opposite to pos_motion" )   
 
+    #absolute value of the velocities    
+    abs_v_start = abs(v_start)
+    abs_v_end = abs(v_end)   
+        
         
     ######################## Step_2:  check motion type: complex or simple motion ##########################
     
@@ -197,11 +205,32 @@ def fit_traj_segment(p_start, p_end, v_start, v_end, p_max, v_max, a_max, j_max,
     
    
     ### one option to retun segment_jerks_and_durations and send it to JTC and then use it for interpolation on the JTC side
-    # jsut to test max reachable vel script, retun only thesegment_jerks_and_durations     
     return segment_jerks_and_durations
    
    
-   ######################## Step_3:  generate pos, vel, acc, jrk using the calculated "segment_jerks_and_durations" ##########################         
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+
+### the main function to fit traj segment with generic start/end velocities 
+def fit_traj_segment(p_start, p_end, v_start, v_end, p_max, v_max, a_max, j_max, independent_variable=Symbol('t')):
+    """
+    main function to fit a trajectory segment for given start/end velocities/positions!
+    """
+    ## Step_1. calculate jerk_sign_and_duration 
+    segment_jerks_and_durations = calculate_jerk_sign_and_duration(p_start, p_end, v_start, v_end, p_max, v_max, a_max, j_max, independent_variable=Symbol('t'))
+   
+    ## Step_2:  generate pos, vel, acc, jrk using the calculated "segment_jerks_and_durations" ##########################         
  
     p0 = p_start
     v0 = v_start
@@ -218,13 +247,16 @@ def fit_traj_segment(p_start, p_end, v_start, v_end, p_max, v_max, a_max, j_max,
         a = integrate(j, independent_variable) + a0
         v = integrate(a, independent_variable) + v0
         p = integrate(v, independent_variable) + p0
+        
         jerk_functions.append(j)
         acceleration_functions.append(a)
         velocity_functions.append(v)
         position_functions.append(p)
+        
         a0 = a.subs({independent_variable: T})
         v0 = v.subs({independent_variable: T})
         p0 = p.subs({independent_variable: T})
+    
     position = PiecewiseFunction(times, position_functions, independent_variable)
     velocity = PiecewiseFunction(times, velocity_functions, independent_variable)
     acceleration = PiecewiseFunction(times, acceleration_functions, independent_variable)

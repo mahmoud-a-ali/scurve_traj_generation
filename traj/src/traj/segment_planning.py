@@ -11,7 +11,6 @@ def calculate_minPos_localMaxAcc_to_absMaxVel(v, vm, am, jm):
     p0=0.0
     a0=0.0
     v0=v
-
     ar = math.sqrt( jm*(vm-v0) )
     t= ar/jm
     ta=0.0
@@ -263,7 +262,7 @@ def equal_vel_case_planning (pos_diff, v, abs_max_vel, abs_max_acc, abs_max_jrk)
                 t_max_jrk = acc/abs_max_jrk
                 t_max_acc = 0.0
                 t_max_vel = 0.0
-                
+           
     return t_max_jrk, t_max_acc, t_max_vel, localMaxVel, localMaxAcc
 
 
@@ -275,7 +274,6 @@ def traj_segment_planning(p_start, p_end, abs_v_start, abs_v_end, abs_max_vel, a
     """
     plan motion profile for a traj segment with given start and end velocities/positions, considering the start and end accelerations/jerks are zeros!        
     """    
-          
     #calculate min_pos required to reach vf from v0   
     abs_minPos_to_vf, acc_to_vf, t_jrk_to_vf, t_acc_to_vf = calculate_minPos_reachAcc_maxJrkTime_maxAccTime_to_final_vel(abs_v_start, abs_v_end, abs_max_vel, abs_max_acc, abs_max_jrk)
     if abs_minPos_to_vf > abs(p_end-p_start) and  abs_minPos_to_vf - abs(p_end-p_start) > 1e-5: # if abs_minPos_to_vf> abs(p_end-p_start), then these values are not feasible
@@ -298,7 +296,9 @@ def traj_segment_planning(p_start, p_end, abs_v_start, abs_v_end, abs_max_vel, a
             t_jrk=0.0
             t_acc=0.0
             t_vel=0.0
-    # return time for both: from v0_to_vf case and for equal_vel_case  
+    # return time for both: from v0_to_vf case and for equal_vel_case 
+    rospy.logdebug(">>> output of traj_segment_planning: t_jrk_to_vf, t_acc_to_vf, t_jrk, t_acc, t_vel: ")
+    rospy.logdebug("{},  {}, {},  {}, {}".format(t_jrk_to_vf, t_acc_to_vf, t_jrk, t_acc, t_vel) ) 
     return t_jrk_to_vf, t_acc_to_vf, t_jrk, t_acc, t_vel
 
 

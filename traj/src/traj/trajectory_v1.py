@@ -27,17 +27,21 @@ def form_seg_jt_2_jt_seg(lst):
     
     
     
+#def project_limits_onto_s(limits, function):
+#    #print "function: {}".format( function )    
+#    #print "limits: {}".format( limits )    
+#    slope = np.abs(np.array(diff(function)).astype(np.float64).flatten())
+#    #print "slope: {}".format( slope )    
+#    limit_factor = limits / slope
+##    print "limit_factor: {}".format( limit_factor )
+#    #return min(limit_factor)
+#    return limit_factor.tolist()
+
 def project_limits_onto_s(limits, function):
-    #print "function: {}".format( function )    
-    #print "limits: {}".format( limits )    
-    slope = np.abs(np.array(diff(function)).astype(np.float64).flatten())
-    #print "slope: {}".format( slope )    
+    slope = np.abs(np.array( [diff(func) for func in function ] ).astype(np.float64).flatten())
     limit_factor = limits / slope
-#    print "limit_factor: {}".format( limit_factor )
-    #return min(limit_factor)
     return limit_factor.tolist()
-
-
+#    return min(limit_factor)
 
 
 
@@ -136,9 +140,9 @@ def trajectory_for_path_v1(path, estimated_max_vel, max_positions,  max_velociti
             traj_jrk_ph = []
             for function_i in range(len(s_pos.functions)):
                 position_vs_t = fsegment.subs(s, s_pos.functions[function_i])
-                velocity_vs_t = diff(position_vs_t, t)
-                acceleration_vs_t = diff(velocity_vs_t, t)
-                jerk_vs_t = diff(acceleration_vs_t, t)
+                velocity_vs_t = Matrix( [diff(pos, t) for pos in position_vs_t ]  )
+                acceleration_vs_t = Matrix( [diff(vel, t) for vel in velocity_vs_t ] ) 
+                jerk_vs_t = Matrix( [diff(acc, t) for acc in acceleration_vs_t ] )
 
                 traj_times_jt[jt].append(s_pos.boundaries[function_i + 1] + jt_seg_start_time)               
                 traj_pos_ph.append(position_vs_t[jt])
@@ -166,18 +170,23 @@ def trajectory_for_path_v1(path, estimated_max_vel, max_positions,  max_velociti
     traj_acc_jt_seg = form_seg_jt_2_jt_seg( traj_acc_seg_jt )
     traj_jrk_jt_seg = form_seg_jt_2_jt_seg( traj_jrk_seg_jt )
 
-#    print "\n>>> traj_pos_jt_seg: type, len: {} {}, {} {}, {} ".format( type(traj_pos_jt_seg), len(traj_pos_jt_seg) , 
-#    type(traj_pos_jt_seg[0]), len(traj_pos_jt_seg[0]), type(traj_pos_jt_seg[0][0])  )
-
-
+#    print "\n>>> traj_pos_jt_seg: shp={} ".format( np.shape(traj_pos_jt_seg) )
+    print "\n>>> traj_jrk_jt_seg: shp={} ".format( np.shape(traj_jrk_jt_seg) )
+    print "\n>>> traj_times_jt: shp={} ".format( np.shape(traj_times_jt) )
+    
+    print "\n\n\n>>>>>>>>>>> Timing for each phase in each joint: <<<<<<<<<<<<<<<<<< "
+    for seg in range(n_segs):
+        for jt in range(n_jts):
+            print "\n>>>traj_times_jt{}_seg{}: \n{}".format( jt, seg, traj_times_jt[jt][ 10*seg : 10*seg+10 ] )
+    
     pos_piecewise_funcs=[] 
     vel_piecewise_funcs=[]
     acc_piecewise_funcs=[] 
     jrk_piecewise_funcs=[]
     for jt in range(n_jts):
         print "\n\n\n\n\n>>>jt={}".format( jt )
-        print "\n>>>traj_acc_jt_seg={}".format( traj_acc_jt_seg[jt] )
-        print "\n traj_times_jt    ={}".format( traj_times_jt[jt]   )
+        print ">>>traj_jrk_jt_seg: \n{}".format( traj_jrk_jt_seg[jt] )
+        print ">>>traj_times_jt: \n{}".format( traj_times_jt[jt]  )
         
         pos_piecewise_funcs.append(  PiecewiseFunction(traj_times_jt[jt],  traj_pos_jt_seg[jt]  , t)  )
         vel_piecewise_funcs.append(  PiecewiseFunction(traj_times_jt[jt],  traj_vel_jt_seg[jt]  , t)  )

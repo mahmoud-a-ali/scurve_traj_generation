@@ -33,7 +33,7 @@ def project_limits_onto_s(limits, function):
     return limit_factor.tolist()
 
 
-def trajectory_for_path_v3(path, v_start, v_end, max_velocities, max_accelerations, max_jerks):       
+def un_sync_trajectory_for_path(path, v_start, v_end, max_velocities, max_accelerations, max_jerks):       
     path_function = parameterize_path(path)
     t = Symbol('t')
     s = path_function.independent_variable    
@@ -219,15 +219,9 @@ def trajectory_for_path_v3(path, v_start, v_end, max_velocities, max_acceleratio
     traj_acc_jt_seg = form_seg_jt_2_jt_seg( traj_acc_seg_jt )
     traj_jrk_jt_seg = form_seg_jt_2_jt_seg( traj_jrk_seg_jt )
 
-#    print "\n>>> traj_pos_jt_seg: shp={} ".format( np.shape(traj_pos_jt_seg) )
-    print "\n>>> traj_jrk_jt_seg: shp={} ".format( np.shape(traj_jrk_jt_seg) )
-    print "\n>>> traj_times_jt: shp={} ".format( np.shape(traj_times_jt) )
-    
-    print "\n\n\n>>>>>>>>>>> Timing for each phase in each joint: <<<<<<<<<<<<<<<<<< "
-    for seg in range(n_segs):
-        for jt in range(n_jts):
-            print "\n>>>traj_times_jt{}_seg{}: \n{}".format( jt, seg, traj_times_jt[jt][ 10*seg : 10*seg+10 ] )
-    
+#    print "\n>>> traj_pos_jt_seg: type, len: {} {}, {} {}, {} ".format( type(traj_pos_jt_seg), len(traj_pos_jt_seg) , 
+#    type(traj_pos_jt_seg[0]), len(traj_pos_jt_seg[0]), type(traj_pos_jt_seg[0][0])  )
+
 
     pos_piecewise_funcs=[] 
     vel_piecewise_funcs=[]
