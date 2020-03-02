@@ -63,3 +63,4 @@ def plot_2d_path(axes, piecewise_function, npoints, linewidth=1.0, label='path p
     axes.set_xlabel('Joint 1')
     axes.set_ylabel('Joint 2')
     axes.set_ylabel('Joint 2')
+

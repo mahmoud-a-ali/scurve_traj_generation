@@ -1,34 +1,56 @@
-from sympy import Float, Matrix, Piecewise, Symbol
+import copy
+
+import numpy as np
+from sympy import Float, Matrix, Piecewise, Symbol, sin, cos
 
 from piecewise_function import PiecewiseFunction
 
 
-def blend_ratio(s):
-    """
-    Carefully chosen polynomial such that:
-      blend_ratio(0.0) is 0.0
-      blend_ration(1.0) is 1.0)
-      derivative of blend_ratio w.r.t s at s=0.0 is 0.0
-      derivative of blend_ratio w.r.t. s at s=1.0 is 0.0
-    """
-    return 6. * (s ** 5) - 15 * (s ** 4) + 10 * (s ** 3)
+# Values smaller than this are considered to be zero to avoid numerical problems.
+PRECISION = 1e-6
 
+def create_arc_segment(q_blend_start, q_unblended_waypoint, q_blend_end, blend_radius, s):
+    # Make sure all arguments are simple numpy arrays (not sympy matrices).
+    q_blend_start = np.array(q_blend_start).astype(np.float64).flatten()
+    q_unblended_waypoint = np.array(q_unblended_waypoint).astype(np.float64).flatten()
+    q_blend_end = np.array(q_blend_end).astype(np.float64).flatten()
 
-def corrected_blend_ratio(s, s0, s1):
-    """
-    The blend_ratio() polynomial assumes that s is between 0.0 and 1.0. Here we scale s to fit those assumptions.
+    v1 = q_blend_start - q_unblended_waypoint
+    v2 = q_blend_end - q_unblended_waypoint
+    v1 /= np.linalg.norm(v1)
+    v2 /= np.linalg.norm(v2)
 
-    Args:
-        s - value of s for which we want to evaluate the blend ratio
-        s0 - value of s at the beginning of the blended segment.
-        s1 - value of s at the end of the blended segment.
-    """
-    return blend_ratio((s - s0) / (s1 - s0))
+    # Included angle between the two segments
+    included_dot_product = np.dot(v1, v2)
+    if np.abs(included_dot_product) > 1.0 - PRECISION:
+        return 0.0, Matrix(q_blend_start)
 
+    theta = np.arccos(included_dot_product)
 
-def create_blended_segment(segment1_function, segment2_function, blend_radius, s):
-    segment_blend_ratio = corrected_blend_ratio(s, 0.0, blend_radius * 2.0)
-    return segment1_function + segment_blend_ratio * (segment2_function - segment1_function)
+    # Distance from unblended waypoint to centerpoint of arc.
+    L = blend_radius / np.cos(theta / 2.0)
+
+    centerline_vector = (v1 + v2) / 2.0
+    centerline_vector /= np.linalg.norm(centerline_vector)
+
+    arc_centerpoint = q_unblended_waypoint + L * centerline_vector
+
+    arc_radius = np.linalg.norm(q_blend_start - arc_centerpoint)
+
+    alpha = np.pi - theta
+    chord_vector = q_blend_end - q_blend_start
+    chord_length = np.linalg.norm(chord_vector)
+    chord_vector /= chord_length
+
+    arc_length = arc_radius * alpha
+
+    angle = (alpha / 2.0 - s / arc_radius)
+
+    return arc_length, Matrix(arc_centerpoint) + arc_radius * Matrix(-centerline_vector) * cos(
+            angle) + arc_radius * Matrix(-chord_vector) * sin(angle)
+
+    #return 2.0*blend_radius, Matrix(q_blend_start) + Matrix(chord_vector) * (
+    #        chord_length / (2.0*blend_radius)) * s
 
 
 def parameterize_path(path):
@@ -66,58 +88,51 @@ def parameterize_path(path):
         functions.append(q0 + direction * s)
     return PiecewiseFunction(boundaries, functions, s)
 
+def parameterize_path_with_blends(path, blend_radius):
+    # We modify the path in place when we add blends. To avoid changing the path which was passed
+    # in, we make a copy here.
+    path = copy.deepcopy(path[:])
 
-def blend_parameterized_path(piecewise_position_function, blend_radius):
-    """
-    blend_radius is in same units as the independent variable of the piecewise position function "s". In the
-    un-blended path we start with, these units are equal to the distance in joint space.
+    s = Symbol('s')
+    boundaries = [0.0]
+    functions = []
+    # q0 and q1 are successive joint space positions in the path. "boundaries" are the values of the
+    # independent variable (often time) at which we switch from one function to the next in our
+    # piecewise representation.
+    for point_i in range(len(path)-1):
+        q0 = Matrix(path[point_i])
+        q1 = Matrix(path[point_i+1])
+        s0 = boundaries[-1]
+        length = (q1 - q0).norm()
+        s1 = s0 + length
+        direction = (q1 - q0) / length
 
-    Follows the approach of
-
-    https://github.com/PilzDE/pilz_industrial_motion/blob/melodic-devel/pilz_trajectory_generation/doc/MotionBlendAlgorithmDescription.pdf
-
-    """
-    s = piecewise_position_function.independent_variable
-
-    boundaries = piecewise_position_function.boundaries
-    functions = piecewise_position_function.functions
-    assert len(boundaries) == len(functions) + 1
-    blended_boundaries = [0.0]
-    blended_functions = []
-    for segment_i in range(len(functions)):
-        original_segment_length = boundaries[segment_i + 1] - boundaries[segment_i]
-        # Relative to start of the original segment
-        if segment_i == 0:
-            s_start = 0.0
-            s_end = original_segment_length - blend_radius
-        elif segment_i == len(functions) - 1:
-            s_start = blend_radius
-            s_end = original_segment_length
+        if point_i == len(path) - 2:
+            # Last point; no blend
+            boundaries.append(float(s1))
+            functions.append(q0 + direction * s)
         else:
-            s_start = blend_radius
-            s_end = original_segment_length - blend_radius
+            # This segments ends where it enters the blend sphere.
+            segment_length = s1 - s0 - blend_radius
+            boundaries.append(boundaries[-1] + segment_length)
+            functions.append(q0 + direction * s)
 
-        segment_length = s_end - s_start
-        if segment_length < 0.0:
-            segment_length = boundaries[segment_i + 1] - boundaries[segment_i]
-            raise RuntimeError('Segment {} has length {} which is less than 2*blend_radius', segment_i, segment_length)
+            q_blend_start = functions[-1].subs(s, segment_length)
 
-        blended_boundaries.append(blended_boundaries[-1] + segment_length)
-        blended_functions.append(functions[segment_i].subs(s, s + s_start))
+            q2 = Matrix(path[point_i+2])
+            length_next = (q2 - q1).norm()
+            direction_next = (q2 - q1) / length_next
+            q_blend_end = q1 + direction_next * blend_radius
 
-        # All but the last segment have blends leading into the following segment.
-        if segment_i < len(functions) - 1:
-            blended_boundaries.append(blended_boundaries[-1] + blend_radius * 2.0)
-            blended_functions.append(None)
+            arc_length, arc_function = create_arc_segment(q_blend_start, q1, q_blend_end,
+                    blend_radius, s)
 
-    # Go back and fill in all the blending functions.
-    for blended_segment_i in range(len(blended_functions)):
-        if blended_functions[blended_segment_i] is None:
-            previous_segment_length = blended_boundaries[blended_segment_i] - blended_boundaries[blended_segment_i - 1]
-            blended_functions[blended_segment_i] = create_blended_segment(
-                blended_functions[blended_segment_i - 1].subs(s, s + previous_segment_length),
-                #blended_functions[blended_segment_i - 1].subs(s, s + previous_segment_length),
-                 blended_functions[blended_segment_i + 1].subs(s, s - 2.0 * blend_radius),
-                blend_radius, s)
+            boundaries.append(boundaries[-1] + arc_length)
+            functions.append(arc_function)
 
-    return PiecewiseFunction(blended_boundaries, blended_functions, s)
+            path[point_i + 1] = np.array(functions[-1].subs(s, arc_length)).astype(
+                    np.float64).flatten()
+
+    return PiecewiseFunction(boundaries, functions, s)
+
+

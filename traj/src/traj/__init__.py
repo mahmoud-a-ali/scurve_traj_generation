@@ -1,5 +1,4 @@
-from .parameterize_path import (parameterize_path, blend_parameterized_path, blend_ratio, corrected_blend_ratio,
-                                create_blended_segment)
+from .parameterize_path import parameterize_path, parameterize_path_with_blends
 from piecewise_function import PiecewiseFunction
 import seven_segment_type3
 import seven_segment_type4
