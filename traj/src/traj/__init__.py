@@ -3,7 +3,9 @@ from piecewise_function import PiecewiseFunction
 import seven_segment_type3
 import seven_segment_type4
 import plot
+
 from trajectory import trajectory_for_path
+from trajectory_v2 import trajectory_for_path_v2
 
 from traj_segment import fit_traj_segment
 from traj_segment import calculate_jerk_sign_and_duration
