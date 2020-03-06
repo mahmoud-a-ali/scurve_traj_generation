@@ -69,6 +69,7 @@ max_jerks = np.deg2rad(np.array([
 ]))
 
 joint_names = ['joint_1', 'joint_2', 'joint_3', 'joint_4', 'joint_5', 'joint_6']
+
 rospy.init_node('traj_demo')
 follow_trajectory_client = actionlib.SimpleActionClient('joint_trajectory_action', FollowJointTrajectoryAction)
 follow_trajectory_client.wait_for_server()
