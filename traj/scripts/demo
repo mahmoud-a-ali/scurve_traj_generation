@@ -2,6 +2,8 @@
 """
 Simple example that parametrizes a 2d joint-space path.
 """
+import argparse
+
 import actionlib
 from control_msgs.msg import FollowJointTrajectoryAction, FollowJointTrajectoryGoal
 from trajectory_msgs.msg import JointTrajectoryPoint
@@ -68,32 +70,46 @@ max_jerks = np.deg2rad(np.array([
     16000.0,
 ]))
 
-rospy.init_node('traj_demo')
-follow_trajectory_client = actionlib.SimpleActionClient('joint_trajectory_action', FollowJointTrajectoryAction)
-follow_trajectory_client.wait_for_server()
-rospy.loginfo('Connected to joint trajectory server')
+parser = argparse.ArgumentParser(description='Generate a smooth trajectory')
+parser.add_argument('--execute', action='store_true', help='Execute trajectory on robot.')
+parser.add_argument('--plot', action='store_true', help='Plot the generated trajectory')
+parser.add_argument('--joint_prefix', help='prefix for joint names, assumes form <prefix>joint_<i>',
+        default ='')
+args = parser.parse_args()
 
-plot_trajectory = rospy.get_param('~plot', False)
-joint_prefix = rospy.get_param('~joint_prefix', '')
+if args.execute:
+    rospy.init_node('traj_demo')
+    follow_trajectory_client = actionlib.SimpleActionClient('joint_trajectory_action', FollowJointTrajectoryAction)
+    rospy.loginfo('Waiting for joint trajectory action server')
+    follow_trajectory_client.wait_for_server()
+    rospy.loginfo('Connected to joint trajectory server')
 
-joint_names = [joint_prefix + name for name in ['joint_1', 'joint_2', 'joint_3', 'joint_4', 'joint_5', 'joint_6']]
+joint_names = [args.joint_prefix + name for name in [
+    'joint_1', 'joint_2', 'joint_3', 'joint_4', 'joint_5', 'joint_6']]
 
-initial_joint_states = rospy.wait_for_message('/joint_states', JointState).position
-rospy.loginfo('Set initial values based on current joint states')
+if args.execute:
+    rospy.loginfo('Waiting for initial joint states')
+    initial_joint_states = rospy.wait_for_message('/joint_states', JointState).position
+    rospy.loginfo('Set initial values based on current joint states')
+else:
+    initial_joint_states = (0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
 
 # Simple path
 path = np.array([initial_joint_states, (1.5, 0.7, 0.3, 0.0, -0.3, 0.0), initial_joint_states,
                  (-1.5, 0.7, 0.3, 0.0, -0.3, 0.0), initial_joint_states])
 
+print('Computing trajectory')
 (trajectory_position_function, trajectory_velocity_function, trajectory_acceleration_function,
  trajectory_jerk_function) = traj.trajectory_for_path(path, max_velocities, max_accelerations, max_jerks)
+print('Done computing trajectory')
 
 goal = create_joint_trajectory_goal(trajectory_position_function, joint_names, sample_period=0.008)
 
-follow_trajectory_client.send_goal(goal)
-follow_trajectory_client.wait_for_result()
+if args.execute:
+    follow_trajectory_client.send_goal(goal)
+    follow_trajectory_client.wait_for_result()
 
-if plot_trajectory:
+if args.plot:
     traj.plot.plot_trajectory(plt.figure(), trajectory_position_function, trajectory_velocity_function,
                               trajectory_acceleration_function, trajectory_jerk_function)
 
