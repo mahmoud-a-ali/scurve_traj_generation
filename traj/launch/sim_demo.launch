@@ -13,6 +13,7 @@
 
   <node pkg="traj" type="demo" name="traj_demo">
     <param name="plot" value="$(arg plot)"/>
+    <param name="execute" value="true"/>
   </node>
 
   <node name="rviz" pkg="rviz" type="rviz" args="-d $(find industrial_robot_client)/config/robot_state_visualize.rviz" required="true" />

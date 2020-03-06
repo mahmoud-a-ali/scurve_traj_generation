@@ -70,24 +70,27 @@ max_jerks = np.deg2rad(np.array([
     16000.0,
 ]))
 
-parser = argparse.ArgumentParser(description='Generate a smooth trajectory')
-parser.add_argument('--execute', action='store_true', help='Execute trajectory on robot.')
-parser.add_argument('--plot', action='store_true', help='Plot the generated trajectory')
-parser.add_argument('--joint_prefix', help='prefix for joint names, assumes form <prefix>joint_<i>',
-        default ='')
-args = parser.parse_args()
+rospy.init_node('traj_demo')
 
-if args.execute:
-    rospy.init_node('traj_demo')
+# Whether to send the computed trajectory to a FollowJointTrajectory action server.
+execute = rospy.get_param('~execute', False)
+
+# Whether to pop up a graphical plot of the computed trajectory.
+plot = rospy.get_param('~plot', True)
+
+# We assume the joint names of the arm are of the form <joint_prefix>joint_<i>
+joint_prefix = rospy.get_param('~joint_prefix', '')
+
+if execute:
     follow_trajectory_client = actionlib.SimpleActionClient('joint_trajectory_action', FollowJointTrajectoryAction)
     rospy.loginfo('Waiting for joint trajectory action server')
     follow_trajectory_client.wait_for_server()
     rospy.loginfo('Connected to joint trajectory server')
 
-joint_names = [args.joint_prefix + name for name in [
+joint_names = [joint_prefix + name for name in [
     'joint_1', 'joint_2', 'joint_3', 'joint_4', 'joint_5', 'joint_6']]
 
-if args.execute:
+if execute:
     rospy.loginfo('Waiting for initial joint states')
     initial_joint_states = rospy.wait_for_message('/joint_states', JointState).position
     rospy.loginfo('Set initial values based on current joint states')
@@ -105,11 +108,11 @@ print('Done computing trajectory')
 
 goal = create_joint_trajectory_goal(trajectory_position_function, joint_names, sample_period=0.008)
 
-if args.execute:
+if execute:
     follow_trajectory_client.send_goal(goal)
     follow_trajectory_client.wait_for_result()
 
-if args.plot:
+if plot:
     traj.plot.plot_trajectory(plt.figure(), trajectory_position_function, trajectory_velocity_function,
                               trajectory_acceleration_function, trajectory_jerk_function)
 

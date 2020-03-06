@@ -1,10 +1,13 @@
 <launch>
   <arg name="joint_prefix" default=""/>
+  <arg name="plot" default="false"/>
 
   <node name="traj_demo" pkg="traj" type="demo">
     <remap from="joint_trajectory_action"
       to="position_trajectory_controller/follow_joint_trajectory"/>
     <param name="joint_prefix" value="$(arg joint_prefix)"/>
+    <param name="execute" value="true"/>
+    <param name="plot" value="$(arg plot)"/>
   </node>
 
   <node name="rosbag" pkg="rosbag" type="record"
