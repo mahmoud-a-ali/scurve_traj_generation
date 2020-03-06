@@ -19,20 +19,11 @@ def trajectory_for_path_v2(path, v_start, v_end, max_velocities, max_acceleratio
     path_function = parameterize_path(path)
     t = Symbol('t')
     s = path_function.independent_variable
-
     ## check n_jts, n_segs
     n_segs =  len(path_function.functions)
     n_wpts = n_segs +1
     n_jts  = len(path[0])
 
-    #### print some info 
-    # print "n_segs ={}".format( n_segs )
-    # for seg in range( n_segs ):
-    #     print "\n\n### seg: {}".format(seg)
-    #     for jt in range( n_jts ):
-    #         print "\n=> q_{}(s) :  {}".format( jt, path_function.functions[seg][jt] )
-    #     print "\n=> s0, s1 :  {}, {}".format( path_function.boundaries[seg], path_function.boundaries[seg+1] )
-    
 
 ############################ step 1: find Max Forward velocity ######################   
     s_fw_vel = []  
@@ -102,7 +93,7 @@ def trajectory_for_path_v2(path, v_start, v_end, max_velocities, max_acceleratio
     trajectory_boundaries = [0.0]
     for segment_i in range(len(path_function.functions)):
         fsegment = path_function.functions[segment_i]
-        print"\n\n ###################### seg: {} ###################### ".format(segment_i)
+        print"\n\n >>>>>>>>> seg: {} ".format(segment_i)
         s0 = path_function.boundaries[segment_i]
         s1 = path_function.boundaries[segment_i + 1]
 
