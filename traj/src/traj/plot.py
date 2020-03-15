@@ -16,7 +16,7 @@ def plot_trajectory(figure, position, velocity, acceleration, jerk, n_points=300
     velocities = np.array([velocity(t) for t in plot_times])
     accelerations = np.array([acceleration(t) for t in plot_times])
     jerks = np.array([jerk(t) for t in plot_times])
-    fig, axes = figure.subplots(4, sharex=True)
+    axes = figure.subplots(4, sharex=True)
     for joint_i in range(positions.shape[1]):
         c = joint_colors[joint_i]
         axes[0].plot(plot_times, positions[:,joint_i], c=c)

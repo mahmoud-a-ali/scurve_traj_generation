@@ -3,8 +3,8 @@ from sympy import diff, Symbol
 
 from piecewise_function import PiecewiseFunction
 from parameterize_path import parameterize_path
-import  traj
 
+from . import seven_segment_type3
 
 def project_limits_onto_s(limits, function):
     slope = np.abs(np.array(diff(function)).astype(np.float64).flatten())
@@ -29,7 +29,6 @@ def trajectory_for_path(path, max_velocities, max_accelerations, max_jerks):
 
         p_start = np.array(fsegment.subs(s, 0.0)).astype(np.float64).flatten()
         p_end = np.array(fsegment.subs(s, s1 - s0)).astype(np.float64).flatten()
-        print(p_start, p_end)
 
         # Project joint limits onto this segment's direction to get limits on s
         v_max = project_limits_onto_s(max_velocities, fsegment)
@@ -38,7 +37,11 @@ def trajectory_for_path(path, max_velocities, max_accelerations, max_jerks):
 
         # Compute 7 segment profile for s as a function of time.
         this_segment_start_time = trajectory_boundaries[-1]
-        s_position, s_velocity, s_acceleration, s_jerk = traj.fit_seven_segment_type3(0, s1-s0, v_max, a_max, j_max, t)
+        s_jerk = seven_segment_type3.fit(
+                0, s1-s0, v_max, a_max, j_max, t)
+        s_acceleration = s_jerk.integrate(0.0)
+        s_velocity = s_acceleration.integrate(0.0)
+        s_position = s_velocity.integrate(0.0)
 
         # Substitute time profile for s into the path function to get trajectory as a function of t.
         for function_i in range(len(s_position.functions)):
