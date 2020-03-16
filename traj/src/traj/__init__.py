@@ -28,3 +28,7 @@ from param_max_reachable_vel import find_max_estimated_vel_per_ndof_path
 
 
 from sample_segment import sample_segment
+
+
+from synchronize_joint_motion import synchronize_joint_motion
+from synchronize_joint_motion import motion_direction
