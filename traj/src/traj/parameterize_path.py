@@ -5,9 +5,9 @@ from sympy import Float, Matrix, Piecewise, Symbol, sin, cos
 
 from piecewise_function import PiecewiseFunction
 
-
 # Values smaller than this are considered to be zero to avoid numerical problems.
 PRECISION = 1e-6
+
 
 def create_arc_segment(q_blend_start, q_unblended_waypoint, q_blend_end, blend_radius, s):
     # Make sure all arguments are simple numpy arrays (not sympy matrices).
@@ -47,10 +47,7 @@ def create_arc_segment(q_blend_start, q_unblended_waypoint, q_blend_end, blend_r
     angle = (alpha / 2.0 - s / arc_radius)
 
     return arc_length, Matrix(arc_centerpoint) + arc_radius * Matrix(-centerline_vector) * cos(
-            angle) + arc_radius * Matrix(-chord_vector) * sin(angle)
-
-    #return 2.0*blend_radius, Matrix(q_blend_start) + Matrix(chord_vector) * (
-    #        chord_length / (2.0*blend_radius)) * s
+        angle) + arc_radius * Matrix(-chord_vector) * sin(angle)
 
 
 def parameterize_path(path):
@@ -88,6 +85,7 @@ def parameterize_path(path):
         functions.append(q0 + direction * s)
     return PiecewiseFunction(boundaries, functions, s)
 
+
 def parameterize_path_with_blends(path, blend_radius):
     # We modify the path in place when we add blends. To avoid changing the path which was passed
     # in, we make a copy here.
@@ -99,9 +97,9 @@ def parameterize_path_with_blends(path, blend_radius):
     # q0 and q1 are successive joint space positions in the path. "boundaries" are the values of the
     # independent variable (often time) at which we switch from one function to the next in our
     # piecewise representation.
-    for point_i in range(len(path)-1):
+    for point_i in range(len(path) - 1):
         q0 = Matrix(path[point_i])
-        q1 = Matrix(path[point_i+1])
+        q1 = Matrix(path[point_i + 1])
         s0 = boundaries[-1]
         length = (q1 - q0).norm()
         s1 = s0 + length
@@ -119,20 +117,18 @@ def parameterize_path_with_blends(path, blend_radius):
 
             q_blend_start = functions[-1].subs(s, segment_length)
 
-            q2 = Matrix(path[point_i+2])
+            q2 = Matrix(path[point_i + 2])
             length_next = (q2 - q1).norm()
             direction_next = (q2 - q1) / length_next
             q_blend_end = q1 + direction_next * blend_radius
 
             arc_length, arc_function = create_arc_segment(q_blend_start, q1, q_blend_end,
-                    blend_radius, s)
+                                                          blend_radius, s)
 
             boundaries.append(boundaries[-1] + arc_length)
             functions.append(arc_function)
 
             path[point_i + 1] = np.array(functions[-1].subs(s, arc_length)).astype(
-                    np.float64).flatten()
+                np.float64).flatten()
 
     return PiecewiseFunction(boundaries, functions, s)
-
-
