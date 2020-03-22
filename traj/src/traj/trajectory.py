@@ -6,11 +6,32 @@ from parameterize_path import parameterize_path
 
 from . import seven_segment_type3
 
-def project_limits_onto_s(limits, function):
-    slope = np.abs(np.array(diff(function)).astype(np.float64).flatten())
-    limit_factor = limits / slope
+
+def project_limits_onto_s(joint_limits, q_of_s):
+    """
+
+    For given max joint limits, projects them onto a linear function q(s) to
+    give the max value of s.
+
+    This function works for position, velocity, jerk, and acceleration limits.
+    It assumes that the limits on each joint are symmetric; i.e. that
+    q_min = -q_max.
+
+    Args:
+        joint_limits: maximum linear (jerk or acceleration or velocity) for each
+          joint in an array.
+        q_of_s: Sympy function that maps from s to a vector of joint values.
+            Must be linear for this function to work.
+
+    Returns:
+        Maximum value for s(t) (or the first/second/third derivative of s(t)
+        depending on whether you passed in velocity/acceleration/jerk limits).
+    """
+    slope = np.abs(np.array(diff(q_of_s)).astype(np.float64).flatten())
+    limit_factor = joint_limits / slope
 
     return min(limit_factor)
+
 
 def trajectory_for_path(path, max_velocities, max_accelerations, max_jerks):
     path_function = parameterize_path(path)
@@ -38,7 +59,7 @@ def trajectory_for_path(path, max_velocities, max_accelerations, max_jerks):
         # Compute 7 segment profile for s as a function of time.
         this_segment_start_time = trajectory_boundaries[-1]
         s_jerk = seven_segment_type3.fit(
-                0, s1-s0, v_max, a_max, j_max, t)
+            0, s1 - s0, v_max, a_max, j_max, t)
         s_acceleration = s_jerk.integrate(0.0)
         s_velocity = s_acceleration.integrate(0.0)
         s_position = s_velocity.integrate(0.0)
