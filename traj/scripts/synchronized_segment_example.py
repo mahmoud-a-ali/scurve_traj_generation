@@ -1,4 +1,7 @@
 #!/usr/bin/env python
+'''
+example 
+'''
 import numpy as np
 import math
 import traj
@@ -16,13 +19,13 @@ abs_max_acc= 4.0
 abs_max_jrk= 10.0  
 
 
-###choose/uncomment one of the following cases
-# starting/ending sotion for each joint
+# starting/ending postion for each joint
 P_start =[0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 P_end   =[7.7, 1.9, 5.1, 1.5, 7.3, 3.4]
 PD_vec = [pf-pi for pf, pi in zip(P_end, P_start)]
 n_jts = len( PD_vec)
 
+###choose/uncomment one of the following cases
 
 ## case_1: zero velocity
 # V_start = [0.0 for jt in range(n_jts)]
@@ -39,7 +42,7 @@ V_start = [3.0, 0.2, 0.8, 0.5, 2.5, 1.6]
 V_end   = [3.0, 0.8, 0.8, 0.5, 1.0, 1.5]
 
 
-## case_4: random values for position difference and start/ending velocity
+## case_4: random values for position difference and start/ending velocities
 # import random 
 # n_jts = 6
 # P_start = [0.0 for jt in range(n_jts)]
@@ -61,7 +64,7 @@ for jt in range( n_jts ):
 
 
 
-## step 1:
+# step 1: find the minimum time motion for each joints 
 min_T  = [ ]
 for jt in range( n_jts ):
 	## min time for each segment: phases times
@@ -69,7 +72,7 @@ for jt in range( n_jts ):
 	min_t = 2*tj_2vf + ta_2vf +  4*t_jrk + 2*t_acc + t_vel
 	min_T.append(  min_t  ) 
 
-
+# step 2: find the joint that has the maximum time motion (reference joint)
 ref_jt = min_T.index(max(min_T))
 syn_t  = max(min_T) 
 rospy.logdebug( ">> syn_t : {} ".format(  syn_t  )  )
@@ -77,7 +80,7 @@ rospy.logdebug( ">> ref_jt: {} ".format(  ref_jt )  )
 rospy.logdebug( ">> min_T: {} ".format(  min_T   )  )
 
 
-### step 3: calculate new jrk_sgn_dur
+# step 3: calculate new jrk_sgn_dur
 Dur_jt = []
 Jrk_jt = []
 for jt in range( n_jts ):
@@ -91,8 +94,6 @@ for jt in range( n_jts ):
 	else:
 		jrk_sign_dur = traj.synchronize_joint_motion( syn_t, pos_diff, v_start, v_end , abs_max_pos, abs_max_vel, abs_max_acc, abs_max_jrk)
 
-
-
 	dur = [jsd[1] for jsd in jrk_sign_dur]
 	jrk = [motion_dir[jt]*jsd[0] for jsd in jrk_sign_dur]
 
@@ -100,6 +101,7 @@ for jt in range( n_jts ):
 	Jrk_jt.append( jrk  )
 
 	rospy.logdebug( ">> dur:{}".format( sum(dur) )   )
+
 
 
 ### sampling and plotting
