@@ -9,13 +9,11 @@ from matplotlib import pyplot as plt
 import rospy
 
 rospy.init_node('segment_synchronization', log_level=rospy.DEBUG)
-
 #### limits:
 abs_max_pos= 10.0 
 abs_max_vel= 3.0
 abs_max_acc= 4.0
 abs_max_jrk= 10.0  
-
 
 # starting/ending postion for each joint
 pos_start =[0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
@@ -79,7 +77,6 @@ for jt in range( n_jts ):
 	
 	if jt == ref_jt:
 		jrk_sign_dur = traj.calculate_jerk_sign_and_duration(0.0, p_diff, v_start, v_end , abs_max_pos, abs_max_vel, abs_max_acc, abs_max_jrk)
-	
 	else:
 		jrk_sign_dur = traj.synchronize_joint_motion( syn_t, p_diff, v_start, v_end , abs_max_pos, abs_max_vel, abs_max_acc, abs_max_jrk)
 
@@ -116,7 +113,6 @@ while t <= syn_t:
 # plot pos, vel, acc, jrk. plot waypoints and estimated velocity as well to check if there is any difference 
 t_start_vec = [traj_time[0] for jt in range(n_jts)]
 t_end_vec = [traj_time[-1] for jt in range(n_jts)]
-
 fig, axes = plt.subplots(4, sharex=True)
 for jt in range(0, n_jts): 
     axes[0].plot( traj_time, traj_pos[jt])
