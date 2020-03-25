@@ -14,19 +14,14 @@ def synchronize_joint_motion(t_syn, pos_diff, v_start, v_end, abs_max_pos, abs_m
 		2. if the given position differnce "pos_diff" is reached before the final velocity "v_end" can be reached  
 		3. if the combination of the position difference"pos_diff", the final velocity "v_end", and the motion time "t_syn" 
 			gives non-monotonic motion 
-
 	this function is based on the same idea of the paper entitled : 
 	Online Trajectory Generation: Basic Concepts for Instantaneous Reactions to Unforeseen Events[1], 
 	section V,  synchronization steps 1,2,3
-
-
 	[1] https://www-cs.stanford.edu/groups/manips/publications/pdfs/Kroeger_2010_TRO.pdf
 	'''
-
 	abs_v_start = abs(v_start)
 	abs_v_end = abs(v_end)
 	jm = abs_max_jrk
-
 	# calculate all variables that determine which equation will be used for synchronization
 	tj_2vf, ta_2vf, tj, ta, tv = traj.traj_segment_planning(0.0, pos_diff, abs_v_start, abs_v_end, abs_max_vel, abs_max_acc, abs_max_jrk)
 	min_pos_2vf, acc_2vf, tj_2vf, ta_2vf = traj.calculate_min_pos_reached_acc_jrk_time_acc_time_to_reach_final_vel( v_start, v_end, abs_max_vel, abs_max_acc, abs_max_jrk)
@@ -75,22 +70,17 @@ def synchronize_joint_motion(t_syn, pos_diff, v_start, v_end, abs_max_pos, abs_m
 		if abs_v_end < abs_v_start:
 			jrk_sgn_dur = [(jk, tjv), (0.0, tav), (-jk, tjv), (0.0, tvv), (-jk,tjv), (0.0, tav), (jk, tjv),
 			                (-jm, tj_2vf), (0.0, ta_2vf), (jm, tj_2vf)]
-
 		else:
 			jrk_sgn_dur = [(jm, tj_2vf), (0.0, ta_2vf), (-jm, tj_2vf), 
 						   (jk, tjv), (0.0, tav), (-jk, tjv), (0.0, tvv), (-jk,tjv), (0.0, tav), (jk, tjv)]
-
 	elif case == 2:
 		if abs_v_end > abs_v_start:
 			jrk_sgn_dur = [(jk, tjv), (0.0, tav), (-jk, tjv), (0.0, tvv), (-jk,tjv), (0.0, tav), (jk, tjv),
 			               (jm, tj_2vf), (0.0, ta_2vf), (-jm, tj_2vf)]
-
 		else:
 			jrk_sgn_dur = [(-jm, tj_2vf), (0.0, ta_2vf), (jm, tj_2vf), 
 							(jk, tjv), (0.0, tav), (-jk, tjv), (0.0, tvv), (-jk,tjv), (0.0, tav), (jk, tjv)]
-
 	return jrk_sgn_dur 
-
 
 
 def motion_direction( v_start, v_end, pos_diff):
@@ -108,15 +98,3 @@ def motion_direction( v_start, v_end, pos_diff):
 	else:
 		raise ValueError("identify_motion_direction: motion is not feasible")
 		return 0 
-
-
-
-
-
-
-
-
-
-
-
-
