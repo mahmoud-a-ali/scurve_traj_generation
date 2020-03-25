@@ -62,7 +62,7 @@ v_end   = [0.0 for pt in range (0, n_jts) ]
 
 
 #####################  n-dof : to find max reachable vel per individual path seperately #######################
-Estimated_vel = traj.find_max_estimated_vel_per_ndof_path(path, v_start, v_end, abs_max_pos, abs_max_vel, abs_max_acc, abs_max_jrk)
+Estimated_vel = traj.reachable_vel_at_each_waypoint_multi_dof_path_case(path, v_start, v_end, abs_max_pos, abs_max_vel, abs_max_acc, abs_max_jrk)
 fig = plt.figure() 
 for jt in range(0, n_jts ):   
     plt.plot( Estimated_vel[jt], label='jt_{}'.format(jt))
