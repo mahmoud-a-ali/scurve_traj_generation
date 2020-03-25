@@ -18,7 +18,6 @@ def find_phase(t, phase_times):
     phase_times = np.asarray(phase_times)
     ph = np.searchsorted(phase_times, t, side='left') -1 
     return ph
-    
 
 
 def sample( t, p_start, v_start, phase_times, phase_jrk,  infl_points_acc, infl_points_vel, infl_points_pos):
@@ -30,7 +29,6 @@ def sample( t, p_start, v_start, phase_times, phase_jrk,  infl_points_acc, infl_
         4. pos,vel, and acc at each inflection point where phase changes: Pos_v, Vel_v, Acc_v 
     it returns:
         pos, vel, acc, and jrk at that time instant "t"
-
     J, T are vectors of size equal to number of phases 
     '''
     ph = find_phase(t, phase_times)
@@ -57,8 +55,6 @@ def sample( t, p_start, v_start, phase_times, phase_jrk,  infl_points_acc, infl_
         return pos, vel, acc, jrk
   
   
-  
-  
 def sample_segment(t, t_start, p_start, v_start, phase_jrk, phase_dur):
     '''
     this functions is to sample a trajectory segment, it takes as argument:
@@ -70,8 +66,7 @@ def sample_segment(t, t_start, p_start, v_start, phase_jrk, phase_dur):
 
     J, T are vectors of size equal to number of phases 
     '''
-
-    #convert dur to  times
+    #convert durations to  times
     phase_times = [ sum(phase_dur[0:i]) for i in range(0, len(phase_dur)+1) ]
        
     #calculate pos,vel,acc at each inflection point where phase changes: 
@@ -84,6 +79,3 @@ def sample_segment(t, t_start, p_start, v_start, phase_jrk, phase_dur):
         infl_points_pos.append( phase_jrk[i]*phase_dur[i]**3/6.0 +  infl_points_acc[i]*phase_dur[i]**2/2.0   + infl_points_vel[i]*phase_dur[i]  + infl_points_pos[i] )
     
     return sample( t-t_start, p_start, v_start, phase_times, phase_jrk,  infl_points_acc, infl_points_vel, infl_points_pos)
-
-        
-
