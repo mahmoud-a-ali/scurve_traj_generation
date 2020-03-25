@@ -14,7 +14,7 @@ def real_roots_cubic_eq ( a,  b,  c,  d):
         # print "The coefficient of the cube of x is 0. Please use the utility for a SECOND degree quadratic. No further action taken."
         rt1, rt2, n_rts = quad_eq_real_root ( b, c, d)
         return rt1, rt2, -100, n_rts
-    
+
     if ( abs(d) < 1e-20):
         # print "One root is 0. Now divide through by x and use the utility for a SECOND degree quadratic to solve the resulting equation for the other two roots. No further action taken."
         rt1 = 0
@@ -91,10 +91,6 @@ def real_roots_cubic_eq ( a,  b,  c,  d):
         rt2= x2r
         rt3= x3r
         return rt1, rt2, rt3, 3
-        #End of cubicSolve
-
-
-
 
 
 def quad_eq_real_root (a, b, c):
@@ -121,8 +117,6 @@ def quad_eq_real_root (a, b, c):
             rt1= 0
             rt2= 0
             return rt1, rt2, 0
-
-
 
 
 def min_positive_root2( r1,  r2):    
@@ -169,15 +163,3 @@ def min_positive_root3( r1,  r2,  r3):
     else:
         raise ValueError("there is no real positive roots!" ) 
     return min_rt
-
-
-
-
-
-
-
-
-
-
-
-
