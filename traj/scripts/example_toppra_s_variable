@@ -7,7 +7,6 @@ import numpy as np
 import rospy
 import traj
 
-
 ## limits 
 max_positions     = [  30.0,    30.0]
 max_velocities    = [   3.0,     3.0]
@@ -17,17 +16,14 @@ max_jerks         = [  10.0,    10.0]
 rospy.init_node('traj_demo_blending')
 plot_trajectory = rospy.get_param('~plot', True)
 
-
 # path
 path = np.array([(0.0, 0.0), (0.2, 0.4), (0.8, 0.6), (1.0, 1.0) ])
 path = np.array([(0.0, 0.0), (0.3, 0.6), (0.9, 0.9) ])
 v_start= [ 0.0, 0.0]
 v_end  = [ 0.0, 0.0]
 
-
 (trajectory_position_function, trajectory_velocity_function, trajectory_acceleration_function,
  trajectory_jerk_function) = traj.trajectory_for_path_v2(path,  v_start, v_end, max_velocities, max_accelerations, max_jerks)
-
 
 if plot_trajectory:
     traj.plot.plot_trajectory(plt, trajectory_position_function, trajectory_velocity_function,
