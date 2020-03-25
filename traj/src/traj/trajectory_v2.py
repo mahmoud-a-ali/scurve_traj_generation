@@ -33,7 +33,7 @@ def trajectory_for_path_v2(path, v_start, v_end,
         if seg == 0:
             s_v_start = project_limits_onto_s(v_start, fsegment, s1-s0)
             s_fw_vel.append(s_v_start)
-        tj, ta, tv, s_v_nxt = traj.max_reachable_vel(s1-s0, s_fw_vel[seg],
+        tj, ta, tv, s_v_nxt = traj.max_reachable_vel_per_segment(s1-s0, s_fw_vel[seg],
                                                      30.0, j_max, a_max, j_max)
         s_fw_vel.append(s_v_nxt)
     rospy.logdebug("\n>>> s_fw_vel: \n {}".format(s_fw_vel))
@@ -51,7 +51,7 @@ def trajectory_for_path_v2(path, v_start, v_end,
         if seg == 0:
             s_v_end = project_limits_onto_s(v_end, fsegment, s1-s0)
             s_bk_vel.append(s_v_end)
-        tj, ta, tv, s_v_nxt = traj.max_reachable_vel(
+        tj, ta, tv, s_v_nxt = traj.max_reachable_vel_per_segment(
             s1-s0, s_bk_vel[seg], 30.0, v_max, a_max, j_max)
         s_bk_vel.append(s_v_nxt)
     s_bk_vel.reverse()
