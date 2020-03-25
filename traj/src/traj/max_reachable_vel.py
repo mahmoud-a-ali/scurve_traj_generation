@@ -1,15 +1,16 @@
 #!/usr/bin/env python
-"""
-this file contains main low level function to calculate the maximum reachable velocity at the end of the segment 
-based on the position difference between p_start and p_end
-"""
 import rospy
 import math
 import traj
     
     
-### calculate minPos to reach absMaxVel starting with initial_vel
-def calculate_minPos_reachAcc_maxJrkTime_maxAccTime_to_absMaxVel_3ph(abs_v_start, vm, am, jm):
+def calculate_min_pos_reached_acc_jrk_time_acc_time_to_reach_max_vel_3phases_case(abs_v_start, vm, am, jm):
+    '''
+    This function calculates the following variables to reach the absolute Maximum Velocity "vm"  starting with initial_vel "v_start":
+    1. the minimum position required to reach the maximum absolute velocity "vm"
+    2. the acceleration "acc" that has been reached to reach the maximum absolute velocity starting with "v_start"
+    3. phases times to reach maximum absolute velocity: jerk_phase time "tj" and acceleration_phase time "ta" 
+    '''
     p0=0.0
     v0=abs_v_start
     a0=0.0
@@ -36,8 +37,8 @@ def calculate_minPos_reachAcc_maxJrkTime_maxAccTime_to_absMaxVel_3ph(abs_v_start
   
     
     if abs(a2)<=abs(am):
-        acc_to_absMaxVel = a2 
-        minPos_to_absMaxVel = p3 
+        acc_to_max_vel = a2 
+        min_pos_to_max_vel = p3 
     else:
         tj =abs(am/jm) 
         ta= ( abs(vm-v0) - abs((am**2/jm)) )/am        
@@ -53,15 +54,17 @@ def calculate_minPos_reachAcc_maxJrkTime_maxAccTime_to_absMaxVel_3ph(abs_v_start
         p2 =                  a1*ta*ta/2.0  + v1*ta + p1;
         p3 = -jm*t*t*t/6.0 +  a2*t*t/2.0    + v2*t  + p2;  
         
-        acc_to_absMaxVel = a2 
-        minPos_to_absMaxVel = p3 
-    return minPos_to_absMaxVel, acc_to_absMaxVel, tj, ta
+        acc_to_max_vel = a2 
+        min_pos_to_max_vel = p3 
+    return min_pos_to_max_vel, acc_to_max_vel, tj, ta
          
 
 
 
-### calculate minPos to reach absMaxAcc starting with initial_vel
-def calculate_minPos_to_absMaxAcc_3ph(v0, vm, am, jm):
+def calculate_min_pos_to_reach_max_acc_3phases_case(v0, vm, am, jm):
+    '''
+    This function calculates the minimum position required to reach the absolute Maximum acceleration "am"  starting with initial_vel "v0":
+    '''
     p0=0.0
     a0=0.0
     tj= am/jm    
@@ -78,18 +81,20 @@ def calculate_minPos_to_absMaxAcc_3ph(v0, vm, am, jm):
     p2 =                  a1*ta*ta/2.0  + v1*ta + p1;
     p3 = -jm*t*t*t/6.0 +  a2*t*t/2.0    + v2*t  + p2;
   
-    minPos_to_absMaxAcc = p3
-    return minPos_to_absMaxAcc
+    min_pos_to_max_acc = p3
+    return min_pos_to_max_acc
          
                
          
          
-         
-         
-         
+def calculate_acc_time_final_vel_for_pos_diff_3phases_case(Dp, abs_v_start, vm, am, jm):
+    '''
+    This function calculates:
+    1. the acceleration_phase time "ta" which is required to move the joint 
+        to new position equal to the starting position plus a position difference "DP"
+    2. the final velocity "v_end" when the the joint reaches the final position "current position + position difference DP " 
+    '''
 
-## calculate the time of the const_acc_phase to reach required pos_diff, in case that the absMaxVel won't be reached
-def calculate_ta_vend_for_pos_diff_3ph(Dp, abs_v_start, vm, am, jm):
     # here we wont reach max vel but still we reach max acc,  which means no const_vel phase     
     p0=0.0
     v0=abs_v_start
@@ -118,14 +123,21 @@ def calculate_ta_vend_for_pos_diff_3ph(Dp, abs_v_start, vm, am, jm):
     v3 = -jm*t*t/2.0 +  a2*t   + v2;
 
   
-    absMaxAccTime = ta
+    max_acc_time = ta
     v_end = v3
-    return absMaxAccTime, v_end
+    return max_acc_time, v_end
     
     
     
     
-def calculate_tj_reachableAcc_vend_for_pos_diff_3ph(Dp, abs_v_start, vm, am, jm):
+def calculate_jrk_time_reached_acc_final_vel_for_pos_diff_3phases_case(Dp, abs_v_start, vm, am, jm):
+    '''
+    This function calculates:
+    1. the acceleration_phase time "ta" which is required to move the joint 
+        to new position equal to the starting position plus a position difference equal to DP
+    2. the final velocity "v_end" when the the joint reaches the final position "current position + position difference DP " 
+    '''
+
     p0 = 0.0
     v0 = abs_v_start   
     a0= 0.0
@@ -162,27 +174,17 @@ def calculate_tj_reachableAcc_vend_for_pos_diff_3ph(Dp, abs_v_start, vm, am, jm)
     v_end = v3 
     return tj, reached_Acc, v_end
     
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
+ 
     
   
          
-def max_reachable_vel(abs_pos_diff, abs_v_start, abs_max_pos, abs_max_vel, abs_max_acc, abs_max_jrk):
-    """
-    the maximum reachable velocity at the end of the segment, based on the position difference: 1. (p_end - p_start), 2.v_start
-    this functions return the phase times: tj, ta, tv considering max three phases: [acc profile be like /`````\........ ] 
-    a) tj: time to reach max  acc 
-    b) ta: time to reach max vel
-    c) tv: time with max vel to complete the required position difference p_end-p_start   
-    """         
+def max_reachable_vel_per_segment(abs_pos_diff, abs_v_start, abs_max_pos, abs_max_vel, abs_max_acc, abs_max_jrk):
+    '''
+    this function calculates the maximum reachable velocity at the end of the segment, based on the position difference (p_end - p_start), 
+    and the starting velocity "v_start"
+    it returns the phases' times: jerk_phase time "tj", acceleration_phase time "ta", velocity_phase time "tv" 
+    considering a three phases motion: [acc profile be like /`````\........ ] 
+    '''         
     rospy.logdebug( "\n max_vel_info: pos_diff={}, v_start ={} ".format( abs_pos_diff, abs_v_start) )
 
     #########################################################################################
@@ -203,41 +205,41 @@ def max_reachable_vel(abs_pos_diff, abs_v_start, abs_max_pos, abs_max_vel, abs_m
     #################################################################################################################
     elif abs_pos_diff > 0.0 and abs_v_start >= 0.0:  
         rospy.logdebug(  "\n>>> case B")   
-        #calculate minPos_to_absMaxVel
-        minPos_to_absMaxVel, acc_to_absMaxVel, tj, ta = calculate_minPos_reachAcc_maxJrkTime_maxAccTime_to_absMaxVel_3ph(abs_v_start, abs_max_vel, abs_max_acc, abs_max_jrk)
-        rospy.logdebug( "minPos_to_absMaxVel= {}, acc_to_absMaxVel={}, tj={}, ta={}".format(minPos_to_absMaxVel, acc_to_absMaxVel, tj, ta) )
+        #calculate min_pos_to_max_vel
+        min_pos_to_max_vel, acc_to_max_vel, tj, ta = calculate_min_pos_reached_acc_jrk_time_acc_time_to_reach_max_vel_3phases_case(abs_v_start, abs_max_vel, abs_max_acc, abs_max_jrk)
+        rospy.logdebug( "min_pos_to_max_vel= {}, acc_to_max_vel={}, tj={}, ta={}".format(min_pos_to_max_vel, acc_to_max_vel, tj, ta) )
         
-        ###### B1) if abs_pos_diff >= minPos_to_absMaxVel, then reach to vm and then continue with vm
-        if abs_pos_diff >= minPos_to_absMaxVel:
+        ###### B1) if abs_pos_diff >= min_pos_to_max_vel, then reach to vm and then continue with vm
+        if abs_pos_diff >= min_pos_to_max_vel:
             rospy.logdebug( "\n>>> case B1")
             abs_v_end = abs_max_vel
-            tv = (abs_pos_diff - minPos_to_absMaxVel) / abs_max_vel
+            tv = (abs_pos_diff - min_pos_to_max_vel) / abs_max_vel
             return tj, ta, tv, abs_v_end
         
         
-        ###### B2) else abs_pos_diff < minPos_to_absMaxVel, and acc_to_absMaxVel >= abs_max_acc
+        ###### B2) else abs_pos_diff < min_pos_to_max_vel, and acc_to_max_vel >= abs_max_acc
         else:
             rospy.logdebug( "\n>>> case B2")
             tv= 0.0
-            #calculate minPos_to_absMaxAcc
-            minPos_to_absMaxAcc = calculate_minPos_to_absMaxAcc_3ph(abs_v_start, abs_max_vel, abs_max_acc, abs_max_jrk)
-            rospy.logdebug( "minPos_to_absMaxAcc= {}".format(minPos_to_absMaxAcc) )
+            #calculate min_pos_to_max_acc
+            min_pos_to_max_acc = calculate_min_pos_to_reach_max_acc_3phases_case(abs_v_start, abs_max_vel, abs_max_acc, abs_max_jrk)
+            rospy.logdebug( "min_pos_to_max_acc= {}".format(min_pos_to_max_acc) )
         
-            #### B2a) if abs_pos_diff >= minPos_to_absMaxAcc, then calculate ta such that it gives  abs_pos_diff, tj is already known: tj= am/jm 
-            if abs_pos_diff >= minPos_to_absMaxAcc:
+            #### B2a) if abs_pos_diff >= min_pos_to_max_acc, then calculate ta such that it gives  abs_pos_diff, tj is already known: tj= am/jm 
+            if abs_pos_diff >= min_pos_to_max_acc:
                 tj= abs_max_acc/abs_max_jrk
                 rospy.logdebug( ">>>case B2a" )
                 #calculate ta, v_end:
-                ta, abs_v_end = calculate_ta_vend_for_pos_diff_3ph(abs_pos_diff, abs_v_start, abs_max_vel, abs_max_acc, abs_max_jrk)
+                ta, abs_v_end = calculate_acc_time_final_vel_for_pos_diff_3phases_case(abs_pos_diff, abs_v_start, abs_max_vel, abs_max_acc, abs_max_jrk)
                 rospy.logdebug( "tj={},  ta={},  tv={},     v_end= {}".format( tj, ta, tv,  abs_v_end ) )
                 return tj, ta, tv, abs_v_end
                 
-            #### B2b) else abs_pos_diff < minPos_to_absMaxAcc, then calculate tj such that it gives  abs_pos_diff, ta is already known: ta= 0.0  
+            #### B2b) else abs_pos_diff < min_pos_to_max_acc, then calculate tj such that it gives  abs_pos_diff, ta is already known: ta= 0.0  
             else:
                 ta= 0.0
                 rospy.logdebug( ">>>case B2b" )
                 #calculate tj, a, v_end:
-                tj, reached_Acc, abs_v_end = calculate_tj_reachableAcc_vend_for_pos_diff_3ph(abs_pos_diff, abs_v_start, abs_max_vel, abs_max_acc, abs_max_jrk)
+                tj, reached_Acc, abs_v_end = calculate_jrk_time_reached_acc_final_vel_for_pos_diff_3phases_case(abs_pos_diff, abs_v_start, abs_max_vel, abs_max_acc, abs_max_jrk)
                 rospy.logdebug(  "tj={},  ta={},  tv={},   reached_Acc={},     v_end={}".format( tj, ta, tv, reached_Acc, abs_v_end ) )
                 return tj, ta, tv, abs_v_end
             
