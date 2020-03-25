@@ -59,4 +59,3 @@ def trajectory_for_path(path, max_velocities, max_accelerations, max_jerks):
             PiecewiseFunction(trajectory_boundaries, trajectory_velocity_functions, t),
             PiecewiseFunction(trajectory_boundaries, trajectory_acceleration_functions, t),
             PiecewiseFunction(trajectory_boundaries, trajectory_jerk_functions, t))
-

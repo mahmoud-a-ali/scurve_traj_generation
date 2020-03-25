@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 import math
-'''
-these function were implemented to find the minimum real root a cubic equation, 
-'''
+
 
 def real_roots_cubic_eq ( a,  b,  c,  d):
+    '''
+    This function finds the  real roots of a cubic equation, 
+    '''
     # print "real_roots_cubic_eq, eq_info: a={} b={} c={} d={} ".format(a,  b, c, d)   
     rt1=0
     rt2=0
@@ -13,7 +14,7 @@ def real_roots_cubic_eq ( a,  b,  c,  d):
         # print "The coefficient of the cube of x is 0. Please use the utility for a SECOND degree quadratic. No further action taken."
         rt1, rt2, n_rts = quad_eq_real_root ( b, c, d)
         return rt1, rt2, -100, n_rts
-    
+
     if ( abs(d) < 1e-20):
         # print "One root is 0. Now divide through by x and use the utility for a SECOND degree quadratic to solve the resulting equation for the other two roots. No further action taken."
         rt1 = 0
@@ -75,7 +76,7 @@ def real_roots_cubic_eq ( a,  b,  c,  d):
         return rt1, rt2, rt3, 2
         #End if (disc == 0)
     
-    #Only option left is that all roots are real and unequal (to get here, q < 0)
+    #Only one option left is that all roots are real and unequal (to get here, q < 0)
     # print "last case: disc < 0 , disc= "
     # print disc
     else:
@@ -90,13 +91,12 @@ def real_roots_cubic_eq ( a,  b,  c,  d):
         rt2= x2r
         rt3= x3r
         return rt1, rt2, rt3, 3
-        #End of cubicSolve
-
-
-
 
 
 def quad_eq_real_root (a, b, c):
+    '''
+    This function finds the  real roots of a quadratic equation, 
+    '''
     disc= b*b - 4*a*c
     if(a==0.000000):
         if(b==0.000000):
@@ -119,9 +119,10 @@ def quad_eq_real_root (a, b, c):
             return rt1, rt2, 0
 
 
-
-
-def min_positive_root2( r1,  r2):
+def min_positive_root2( r1,  r2):    
+    '''
+    This function finds the minimum positive number of two numbers 
+    '''
     min_rt = -1
     if (r1>0 and r2>0 ):
         if r1<r2:
@@ -138,6 +139,9 @@ def min_positive_root2( r1,  r2):
 
 
 def min_positive_root3( r1,  r2,  r3):
+    '''
+    This function finds the minimum positive number of three numbers
+    '''
     min_rt=-1
     if (r1>0 and r2>0 and r3>0):
         if r1<r2:
@@ -159,15 +163,3 @@ def min_positive_root3( r1,  r2,  r3):
     else:
         raise ValueError("there is no real positive roots!" ) 
     return min_rt
-
-
-
-
-
-
-
-
-
-
-
-
