@@ -153,12 +153,3 @@ for jt in range(0, n_jts):
 axes[3][0].set_ylabel('jerk')
 plt.legend()
 plt.show()
-
-
-
-
-
-
-
-
-
