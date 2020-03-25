@@ -29,25 +29,8 @@ if plot_trajectory:
     traj.plot.plot_trajectory(plt, trajectory_position_function, trajectory_velocity_function,
                           trajectory_acceleration_function, trajectory_jerk_function)
     plt.show()
-
     plt.figure()
     traj.plot.plot_2d_path(plt.gca(), trajectory_position_function, 100, label='trajectory points')
     # Plot the waypoints in the original path for comparison.
     plt.plot([q[0] for q in path], [q[1] for q in path], 'bx', label='original waypoints')
-
     plt.show()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
