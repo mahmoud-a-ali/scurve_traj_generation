@@ -2,17 +2,45 @@
 """
 Simple example that parametrizes a 2d joint-space path.
 """
+import argparse
+
 from matplotlib import pyplot as plt
+import matplotlib.patches
+import matplotlib.collections
 import numpy as np
 import traj
 
 # Test path
-path = np.array([(0.0, 0.0), (1.0, 1.0), (1.5, 0.8), (-0.2, 0.4)])
-path_function = traj.parameterize_path(path)
-# Plot sampled points along the parametrized path.
+path = np.array([(0.0, 0.0), (0.3, -0.7), (1.0, 1.0), (-0.2, 0.4)])
+
+parser = argparse.ArgumentParser(description='Parameterize a geometric path.')
+parser.add_argument('--blend-radius', default=0.2, type=float,
+                    help='radius of blend arcs between segments (zero for no blending)')
+args = parser.parse_args()
+
+if args.blend_radius > 0.0:
+    path_function = traj.parameterize_path_with_blends(path, args.blend_radius)
+else:
+    path_function = traj.parameterize_path(path)
+
+# Plot sampled points along the parameterized path.
 traj.plot.plot_2d_path(plt.gca(), path_function, 100)
+
 # Plot the waypoints in the original path for comparison.
 plt.plot([q[0] for q in path], [q[1] for q in path], 'bx', label='original waypoints')
+
+if args.blend_radius > 0.0:
+    # Plot the blend radii as circles around each waypoint.
+    blend_patches = matplotlib.collections.PatchCollection(
+        [matplotlib.patches.Circle((q[0], q[1]), args.blend_radius) for q in path])
+    plt.gca().add_collection(blend_patches)
+
+# Label each waypoint
+for point_i in range(len(path)):
+    point = path[point_i]
+    plt.text(point[0], point[1], 'waypoint_{}'.format(point_i))
+
+plt.gca().set_aspect('equal')
+
 plt.legend()
 plt.show()
-
