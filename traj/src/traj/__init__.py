@@ -28,3 +28,4 @@ from param_max_reachable_vel import reachable_vel_at_each_waypoint_multi_dof_pat
 
 from synchronize_joint_motion import synchronize_joint_motion
 from synchronize_joint_motion import motion_direction
+from synchronize_joint_motion import segment_synchronization
