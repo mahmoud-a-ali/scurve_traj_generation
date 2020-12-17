@@ -1,13 +1,73 @@
-#!/usr/bin/env python
-"""
-sampling funtion for 10_phase segment, it takes as argument:
-1. start time/pos/vel
-2. jerk value and duration of each phase
-3. the time instant at which we need to calculate pos, vel, acc, jrk
-and returns pos, vel, acc, jrk at that time instant
-"""
-
+from matplotlib import pyplot as plt
 import numpy as np
+import traj
+
+joint_colors = ['r', 'b', 'g', 'c', 'm', 'y', 'k', 'w']
+
+"""
+Plot a 1 dimensional trajectory. Plots position, velocity, acceleration, and jerk versus time
+in separate subplots.
+Uses the entire provided figure, adding subplots as needed.
+"""
+def plot_segment(figure, position, velocity, acceleration, jerk, n_points=300, j_max=None,
+        a_max=None, v_max=None, p_max=None):
+    boundaries = jerk.boundaries
+    plot_times = np.linspace(position.boundaries[0], position.boundaries[-1], n_points)
+    positions = np.array([position(t) for t in plot_times])
+    velocities = np.array([velocity(t) for t in plot_times])
+    accelerations = np.array([acceleration(t) for t in plot_times])
+    jerks = np.array([jerk(t) for t in plot_times])
+    axes = figure.subplots(4, sharex=True)
+    for joint_i in range(positions.shape[1]):
+        c = joint_colors[joint_i]
+        axes[0].plot(plot_times, positions[:,joint_i], c=c)
+        axes[0].set_ylabel('position')
+        axes[1].plot(plot_times, velocities[:,joint_i], c=c)
+        axes[1].set_ylabel('velocity')
+        axes[2].plot(plot_times, accelerations[:,joint_i], c=c)
+        axes[2].set_ylabel('acceleration')
+        axes[3].plot(plot_times, jerks[:,joint_i], c=c)
+        axes[3].set_ylabel('jerk')
+
+    axes[0].vlines(boundaries, positions.min(), positions.max(), color=(0.8, 0.8, 0.8))
+
+    if p_max is not None:
+        axes[0].plot(plot_times, [p_max] * len(plot_times), '--', color='red')
+        axes[0].plot(plot_times, [-p_max] * len(plot_times), '--', color='red')
+
+    if v_max is not None:
+        axes[1].plot(plot_times, [v_max] * len(plot_times), '--', color='red')
+        axes[1].plot(plot_times, [-v_max] * len(plot_times), '--', color='red')
+        axes[1].vlines(boundaries, -v_max, v_max, color=(0.8, 0.8, 0.8))
+
+    if a_max is not None:
+        axes[2].plot(plot_times, [a_max] * len(plot_times), '--', color='red')
+        axes[2].plot(plot_times, [-a_max] * len(plot_times), '--', color='red')
+        axes[2].vlines(boundaries, -a_max, a_max, color=(0.8, 0.8, 0.8))
+
+    if j_max is not None:
+        axes[3].plot(plot_times, [j_max] * len(plot_times), '--', color='red')
+        axes[3].plot(plot_times, [-j_max] * len(plot_times), '--', color='red')
+        axes[3].vlines(boundaries, -j_max, j_max, color=(0.8, 0.8, 0.8))
+    plt.legend()
+    plt.suptitle("traj_segment")
+
+
+
+
+def fit_and_plot_segment(p_start, p_end, v_start, v_end, p_max, v_max, a_max, j_max):
+    '''
+    this function plots a trajectory segment, given the start/end positions/velocities,
+    Start and end acceleration/jerk are assumed to be zero.
+    '''
+    position, velocity, acceleration, jerk = traj.fit_traj_segment(p_start, p_end, v_start, v_end, p_max, v_max, a_max, j_max)
+    plot_segment(plt.figure(), position, velocity, acceleration, jerk, n_points=100, v_max=v_max, a_max=a_max, j_max=j_max)
+    plt.show()
+
+
+
+
+
 
 
 def find_phase(t, phase_times):

@@ -1,5 +1,0 @@
-#!/bin/sh
-
-# Simple wrapper since tcpdump isn't in a ROS package, but we want roslanuch to start it.
-
-tcpdump -i eno1 -w /tmp/traj.dump
