@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 '''
-this file contains main high level planning function "fit_traj_segment" to fit a trajectory segment for given start/end velocities/positions.
+this file contains the main high level planning function "fit_traj_segment" to fit a trajectory segment for given start/end velocities/positions.
 fit_traj_segment does high level planning for the segment:
 1. check  the given start/end pos/vel values, if they are within the limits or not
 2. check the given start/end pos/vel values, if they form feasible/logical case for generic segment or not
