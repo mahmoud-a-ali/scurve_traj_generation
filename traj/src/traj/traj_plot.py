@@ -9,7 +9,7 @@ Plot a 1 dimensional trajectory. Plots position, velocity, acceleration, and jer
 in separate subplots.
 Uses the entire provided figure, adding subplots as needed.
 """
-def plot_segment(figure, position, velocity, acceleration, jerk, n_points=300, j_max=None,
+def plot_segment(figure, position, velocity, acceleration, jerk, n_points=500, j_max=None,
         a_max=None, v_max=None, p_max=None):
     boundaries = jerk.boundaries
     plot_times = np.linspace(position.boundaries[0], position.boundaries[-1], n_points)
