@@ -11,73 +11,133 @@ v_max=3.0
 a_max=4.0
 j_max=10.0   
 
-############### CASE A: v_start = v_end = 0    
+
+############### CASE A: v_start = v_end = 0    [normal case, start and end velocities are zeros]
 #case A1:  no limit is reached     
-traj.traj_plot.fit_and_plot_segment(0.0, 1.0,      0.0, 0.0,     p_max, v_max, a_max, j_max)    
+traj.traj_plot.fit_and_plot_segment(0.0, 1.0,      0.0, 0.0,     p_max, v_max, a_max, j_max)      
+    
 #case A2:  acc_limit is reached     
-traj.traj_plot.fit_and_plot_segment(0.0, 3.0,      0.0, 0.0,     p_max, v_max, a_max, j_max)    
+traj.traj_plot.fit_and_plot_segment(0.0, 3.0,      0.0, 0.0,     p_max, v_max, a_max, j_max)      
+    
 #case A3:  vel_limit and acc_limit are reached    
-traj.traj_plot.fit_and_plot_segment(0.0, 5.0,      0.0, 0.0,     p_max, v_max, a_max, j_max)    
+traj.traj_plot.fit_and_plot_segment(0.0, 5.0,      0.0, 0.0,     p_max, v_max, a_max, j_max)        
+    
 
-
-############## CASE B: v_start = v_end !=0
+############## CASE B: v_start = v_end !=0   [ start and end velocities are equal but not null]
 #case B1:  no limit is reached
-traj.traj_plot.fit_and_plot_segment(0.0, 2.0,      1.0, 1.0,     p_max, v_max, a_max, j_max)    
+traj.traj_plot.fit_and_plot_segment(0.0, 2.0,      1.0, 1.0,     p_max, v_max, a_max, j_max)
+       
 #case B2:  vel_limit is reached 
-traj.traj_plot.fit_and_plot_segment(0.0, 3.0,      2.5, 2.5,     p_max, v_max, a_max, j_max)    
+traj.traj_plot.fit_and_plot_segment(0.0, 3.0,      2.5, 2.5,     p_max, v_max, a_max, j_max)   
+   
 #case B3:  acc_limit is reached
-traj.traj_plot.fit_and_plot_segment(0.0, 3.0,      0.5, 0.5,     p_max, v_max, a_max, j_max)    
+traj.traj_plot.fit_and_plot_segment(0.0, 3.0,      0.5, 0.5,     p_max, v_max, a_max, j_max)           
+   
 #case B4:  vel_limit and acc_limit are reached   
 traj.traj_plot.fit_and_plot_segment(0.0, 10.0,     0.5, 0.5,     p_max, v_max, a_max, j_max)    
+   
 
 
-
-############## CASE C: v_start != v_end !=0, and v_start < v_end [acceleration]
+############## CASE C:  v_start < v_end [acceleration]
 #case C1:  no limit is reached
 traj.traj_plot.fit_and_plot_segment(0.0, 2.0,       0.5, 1.5,    p_max, v_max, a_max, j_max)    
-#case C2:  vel_limit is reached 
+    
+##case C2:  vel_limit is reached 
 traj.traj_plot.fit_and_plot_segment(0.0, 5.0,      2.0, 2.5,     p_max, v_max, a_max, j_max)    
-#case C3:  acc_limit is reached
-traj.traj_plot.fit_and_plot_segment(0.0, 3.0,      0.5, 2.5,     p_max, v_max, a_max, j_max)    
-#case C4:  vel_limit and acc_limit are reached   
+    
+##case C3:  acc_limit is reached
+traj.traj_plot.fit_and_plot_segment(0.0, 3.0,      0.5, 2.5,     p_max, v_max, a_max, j_max) 
+    
+##case C4:  vel_limit and acc_limit are reached   
 traj.traj_plot.fit_and_plot_segment(0.0, 5.0,       0.5, 2.5,    p_max, v_max, a_max, j_max)    
-
-
-
-############## CASE D: v_start != v_end !=0, and v_start > v_end [deceleration]
+   
+   
+   
+############## CASE D:  v_start > v_end [deceleration]
 #case D1:  no limit is reached
-traj.traj_plot.fit_and_plot_segment(0.0, 2.0,       1.5, 0.5,    p_max, v_max, a_max, j_max)    
-#case D2:  vel_limit is reached 
-traj.traj_plot.fit_and_plot_segment(0.0, 5.0,       2.5, 2.0,    p_max, v_max, a_max, j_max)    
-#case D3:  acc_limit is reached
-traj.traj_plot.fit_and_plot_segment(0.0, 3.0,       2.5, 0.5,    p_max, v_max, a_max, j_max)    
-#case D4:  vel_limit and acc_limit are reached   
-traj.traj_plot.fit_and_plot_segment(0.0, 5.0,       2.5, 0.5,    p_max, v_max, a_max, j_max)    
+traj.traj_plot.fit_and_plot_segment(0.0, 2.0,       1.5, 0.5,    p_max, v_max, a_max, j_max)     
+    
+##case D2:  vel_limit is reached 
+traj.traj_plot.fit_and_plot_segment(0.0, 5.0,       2.5, 2.0,    p_max, v_max, a_max, j_max)        
+    
+##case D3:  acc_limit is reached
+traj.traj_plot.fit_and_plot_segment(0.0, 3.0,       2.5, 0.5,    p_max, v_max, a_max, j_max)
+    
+##case D4:  vel_limit and acc_limit are reached   
+traj.traj_plot.fit_and_plot_segment(0.0, 5.0,       2.5, 0.5,    p_max, v_max, a_max, j_max)        
+    
+  
+
+
+############### CASE A-: v_start = v_end = 0    [normal case, negative motion]
+#case A1-:  no limit is reached     
+traj.traj_plot.fit_and_plot_segment(0.0, -1.0,      0.0, 0.0,     p_max, v_max, a_max, j_max)      
+    
+#case A2-:  acc_limit is reached     
+traj.traj_plot.fit_and_plot_segment(0.0, -3.0,      0.0, 0.0,     p_max, v_max, a_max, j_max)      
+    
+#case A3-:  vel_limit and acc_limit are reached    
+traj.traj_plot.fit_and_plot_segment(0.0, -5.0,      0.0, 0.0,     p_max, v_max, a_max, j_max)        
+    
+
+############## CASE B-: v_start = v_end !=0   [ start and end velocities are equal but not null]
+#case B1-:  no limit is reached
+traj.traj_plot.fit_and_plot_segment(0.0, -2.0,      -1.0, -1.0,     p_max, v_max, a_max, j_max)
+       
+#case B2-:  vel_limit is reached 
+traj.traj_plot.fit_and_plot_segment(0.0, -3.0,     -2.5, -2.5,     p_max, v_max, a_max, j_max)   
+   
+#case B3-:  acc_limit is reached
+traj.traj_plot.fit_and_plot_segment(0.0, -3.0,      -0.5, -0.5,     p_max, v_max, a_max, j_max)           
+   
+#case B4-:  vel_limit and acc_limit are reached   
+traj.traj_plot.fit_and_plot_segment(0.0, -10.0,     -0.5, -0.5,     p_max, v_max, a_max, j_max)    
+   
+
+############## CASE C-:  v_start < v_end [acceleration]
+#case C1-:  no limit is reached
+traj.traj_plot.fit_and_plot_segment(0.0, -2.0,       -0.5, -1.5,    p_max, v_max, a_max, j_max)    
+    
+##case C2-:  vel_limit is reached 
+traj.traj_plot.fit_and_plot_segment(0.0, -5.0,      -2.0, -2.5,     p_max, v_max, a_max, j_max)    
+    
+##case C3-:  acc_limit is reached
+traj.traj_plot.fit_and_plot_segment(0.0, -3.0,      -0.5, -2.5,     p_max, v_max, a_max, j_max) 
+    
+##case C4-:  vel_limit and acc_limit are reached   
+traj.traj_plot.fit_and_plot_segment(0.0, -5.0,       -0.5, -2.5,    p_max, v_max, a_max, j_max)    
+   
+
+############## CASE D-:  v_start > v_end [deceleration]
+#case D1:  no limit is reached
+traj.traj_plot.fit_and_plot_segment(0.0, -2.0,       -1.5, -0.5,    p_max, v_max, a_max, j_max)     
+    
+##case D2:  vel_limit is reached 
+traj.traj_plot.fit_and_plot_segment(0.0, -5.0,       -2.5, -2.0,    p_max, v_max, a_max, j_max)        
+    
+##case D3:  acc_limit is reached
+traj.traj_plot.fit_and_plot_segment(0.0, -3.0,       -2.5, -0.5,    p_max, v_max, a_max, j_max)
+    
+##case D4:  vel_limit and acc_limit are reached   
+traj.traj_plot.fit_and_plot_segment(0.0, -5.0,       -2.5, -0.5,    p_max, v_max, a_max, j_max)        
+   
 
 
 
-
-############## CASE E: not feasible values considering monotonic segment; can't reach v_end from v_start considering value of p_start and p_end
-#case E1: unfeasible acceleration
-traj.traj_plot.fit_and_plot_segment(0.0, 0.2,      0.5, 2.5,     p_max, v_max, a_max, j_max)    
-#case E2: unfeasible deceleration
-traj.traj_plot.fit_and_plot_segment(0.0, 0.2,      2.5, 0.5,     p_max, v_max, a_max, j_max)  
+###############################################################################################
+################ complex motion: v_start*v_end <0, +ve and -ve parts ##########################
+###############################################################################################
 
 
-
-############## CASE F: not feasible values considering start and end values; start and end values beyond the limits     
-#case F1: unfeasible v_start 
-traj.traj_plot.fit_and_plot_segment(0.0, 0.2,      3.5, 2.5,    p_max, v_max, a_max, j_max)    
-#case F2: unfeasible v_end 
-traj.traj_plot.fit_and_plot_segment(0.0, 0.2,      0.5, 4.5,    p_max, v_max, a_max, j_max)    
-#case F3: unfeasible p_start 
-traj.traj_plot.fit_and_plot_segment(40.0, 0.2,      0.5, 2.5,   p_max, v_max, a_max, j_max)    
-#case F4: unfeasible p_end 
-traj.traj_plot.fit_and_plot_segment(0.0, 40.2,      0.5, 2.5,   p_max, v_max, a_max, j_max) 
+############ CASE X: positive dominant motion: pos_diff > 0
+### starting from +ve to -ve
+traj.traj_plot.fit_and_plot_segment(0.0, 8.0,      1.5, -1.0,     p_max, v_max, a_max, j_max)   
+### starting from -ve to +ve
+traj.traj_plot.fit_and_plot_segment(0.0, 5.0,      -1.5, +1.0,     p_max, v_max, a_max, j_max)   
 
 
-
-
-
-
-
+#############CASE Y: negative dominant motion: pos_diff < 0
+### starting from +ve to -ve
+traj.traj_plot.fit_and_plot_segment(0.0, -8.0,      1.5, -1.0,     p_max, v_max, a_max, j_max)   
+### starting from -ve to +ve
+traj.traj_plot.fit_and_plot_segment(0.0, -5.0,      -1.5, +1.0,     p_max, v_max, a_max, j_max)   
